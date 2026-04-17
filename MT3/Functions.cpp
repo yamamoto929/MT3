@@ -50,13 +50,6 @@ Matrix4x4 Inverse(const Matrix4x4& m) {
 		// --- 1. ピボット（対角成分）の処理 ---
 		float pivot = matrix.m[i][i];
 
-		// 0除算を防ぐためのチェック（ピボットが0に近い場合は計算不可）
-		if (std::abs(pivot) < 1e-5f) {
-			// 逆行列が存在しない場合、とりあえず単位行列を返す等の安全策
-			// （実際のエンジンではエラーログを出したりします）
-			return MakeIdentity4x4();
-		}
-
 		// 対角成分を1にするために、この行全体をピボットで割る（逆数を掛ける）
 		float invPivot = 1.0f / pivot;
 		for (size_t j = 0; j < 4; j++) {

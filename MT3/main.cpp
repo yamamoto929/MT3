@@ -1,5 +1,5 @@
 ﻿#include <Novice.h>
-
+#include "Functions.h"
 const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_00_05";
 
 // Windowsアプリでのエントリーポイント(main関数)
@@ -11,6 +11,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// キー入力結果を受け取る箱
 	char keys[256] = {0};
 	char preKeys[256] = {0};
+
+	Vector3 scale{ 1.2f,0.79f,-2.1f };
+	Vector3 rotate{ 0.4f,1.43f,-0.8f };
+	Vector3 translate{ 2.7f,-4.15f,1.57f };
+	Matrix4x4 worldMatrix = MakeAffineMatrix(scale, rotate, translate);
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -32,7 +37,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 		/// ↓描画処理ここから
 		///
-
+		MatrixScreenPrintf(0, 0, worldMatrix, "worldMatrix");
 		///
 		/// ↑描画処理ここまで
 		///

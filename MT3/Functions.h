@@ -18,3 +18,5 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, f
 
 void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix, const char* label);
 void VectorScreenPrintf(int x, int y, const Vector3& vector, const char* label);
+
+float Cot(float a);

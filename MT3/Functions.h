@@ -8,7 +8,6 @@
 static const inline int kColumnWidth = 60;
 static const inline int kRowHeight = 20;
 
-Matrix4x4 Multiply(const Matrix4x4& m1, const Matrix4x4& m2);
 // 透視投影行列
 Matrix4x4 MakePerspectiveFovMatrix(float fovy, float aspectRatio, float nearClip, float farClip);
 // 正射影行列

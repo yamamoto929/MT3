@@ -1,17 +1,4 @@
 ﻿#include "Functions.h"
-Matrix4x4 Multiply(const Matrix4x4& m1, const Matrix4x4& m2) {
-	Matrix4x4 result{};
-	for (size_t ai = 0; ai < 4; ai++) {
-		for (size_t bi = 0; bi < 4; bi++) {
-			result.m[ai][bi] =
-				m1.m[ai][0] * m2.m[0][bi] +
-				m1.m[ai][1] * m2.m[1][bi] +
-				m1.m[ai][2] * m2.m[2][bi] +
-				m1.m[ai][3] * m2.m[3][bi];
-		}
-	}
-	return result;
-}
 // 透視投影行列
 Matrix4x4 MakePerspectiveFovMatrix(float fovy, float aspectRatio, float nearClip, float farClip) {
 	
@@ -38,7 +25,10 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 // ビューポート変換行列
 Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, float minDepth, float maxDepth) {
 	Matrix4x4 result = { {
-
+		{width/2.0f,         0.0f,           0.0f,             0.0f},
+		{0.0f,               -height/2.0f,   0.0f,             0.0f},
+		{0.0f,               0.0f,           maxDepth-minDepth,0.0f},
+		{left + width / 2.0f,top+height/2.0f,minDepth,         1.0f}
 	} };
 
 	return result;

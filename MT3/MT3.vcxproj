@@ -169,7 +169,7 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="C:\KamataEngine\Adapter\Novice.cpp" />
-    <ClCompile Include="Function.cpp" />
+    <ClCompile Include="Functions.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Matrix4x4.cpp" />
     <ClCompile Include="Vector3Operator.cpp" />

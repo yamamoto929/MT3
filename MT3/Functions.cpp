@@ -5,7 +5,7 @@ Matrix4x4 MakePerspectiveFovMatrix(float fovy, float aspectRatio, float nearClip
 	Matrix4x4 result = { {
 		{(1.0f / aspectRatio)*Cot(fovy/2.0f),0.0f,            0.0f,                                    0.0f},
 		{0.0f,                               Cot(fovy / 2.0f),0.0f,                                    0.0f},
-		{0.0f,                               0.0f,            farClip/(farClip/nearClip),              1.0f},
+		{0.0f,                               0.0f,            farClip/(farClip-nearClip),              1.0f},
 		{0.0f,                               0.0f,            (-nearClip * farClip)/(farClip-nearClip),0.0f}
 	} };
 

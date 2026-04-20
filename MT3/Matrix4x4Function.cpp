@@ -5,7 +5,7 @@ Matrix4x4 Add(const Matrix4x4& m1, const Matrix4x4& m2) {
 	Matrix4x4 result;
 	for (size_t ai = 0; ai < 4; ai++) {
 		for (size_t bi = 0; bi < 4; bi++) {
-			result.m[bi][ai] = m1.m[bi][ai] + m2.m[bi][ai];
+			result.m[ai][bi] = m1.m[ai][bi] + m2.m[ai][bi];
 		}
 	}
 	return result;
@@ -46,13 +46,37 @@ Matrix4x4 Inverse(const Matrix4x4& m) {
 	Matrix4x4 result = MakeIdentity4x4();
 
 	for (size_t i = 0; i < 4; i++) {
-		//ピボット（対角成分）の処理
-		float pivot = matrix.m[i][i];
 
-		// 0除算を防ぐためのチェック（ピボットが0に近い場合は計算不可）
-		if (std::abs(pivot) < 1e-5f) {
+		// --- 0. 部分ピボット選択 ---
+		// i列目の中で、i行目以降から絶対値が最大の要素を持つ行を探す
+		size_t maxRow = i;
+		float maxVal = std::abs(matrix.m[i][i]);
+
+		for (size_t j = i + 1; j < 4; j++) {
+			float val = std::abs(matrix.m[j][i]);
+			if (val > maxVal) {
+				maxVal = val;
+				maxRow = j;
+			}
+		}
+
+		// もし最大の絶対値がほぼ0なら、逆行列は存在しない（特異行列）
+		// ※ここでは計算を打ち切って、安全のために単位行列を返す処理にしています
+		const float epsilon = 1e-6f;
+		if (maxVal < epsilon) {
 			return MakeIdentity4x4();
 		}
+
+		// 最大の絶対値を持つ行が現在の行(i)と違う場合、行全体を入れ替える
+		if (maxRow != i) {
+			for (size_t j = 0; j < 4; j++) {
+				std::swap(matrix.m[i][j], matrix.m[maxRow][j]);
+				std::swap(result.m[i][j], result.m[maxRow][j]);
+			}
+		}
+
+		// --- 1. ピボット（対角成分）の処理 ---
+		float pivot = matrix.m[i][i];
 
 		// 対角成分を1にするために、この行全体をピボットで割る（逆数を掛ける）
 		float invPivot = 1.0f / pivot;
@@ -61,12 +85,13 @@ Matrix4x4 Inverse(const Matrix4x4& m) {
 			result.m[i][j] *= invPivot;
 		}
 
-		// ピボット列の掃き出し（他の行を0にする）
+		// --- 2. ピボット列の掃き出し（他の行を0にする） ---
 		for (size_t k = 0; k < 4; k++) {
-			if (i == k) { continue; }
+			if (i == k) { continue; } // ピボット行自体はスキップ
 
-			float factor = matrix.m[k][i];
+			float factor = matrix.m[k][i]; // 削除するために掛ける係数
 
+			// 行基本変形：k行目 = k行目 - factor * i行目
 			for (size_t j = 0; j < 4; j++) {
 				matrix.m[k][j] -= factor * matrix.m[i][j];
 				result.m[k][j] -= factor * result.m[i][j];
@@ -76,7 +101,6 @@ Matrix4x4 Inverse(const Matrix4x4& m) {
 
 	return result;
 };
-
 //5.転置行列
 Matrix4x4 Transpose(const Matrix4x4& m) {
 	Matrix4x4 result = m;

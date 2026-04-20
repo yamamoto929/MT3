@@ -1,5 +1,7 @@
 ﻿#include <Novice.h>
 #include "Functions.h"
+#include "Matrix4x4Function.h"
+#include <cstdint>
 
 const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_01_01";
 const int kWindowWidth = 1280;

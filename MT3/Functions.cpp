@@ -44,8 +44,8 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, f
 Matrix4x4 MakeRotateXMatrix(float radian) {
 	Matrix4x4 result = { {
 		{1.0f, 0.0f,               0.0f,              0.0f},
-		{0.0f, std::cosf(radian),  std::sinf(radian), 0.0f},
-		{0.0f, -std::sinf(radian), std::cosf(radian), 0.0f},
+		{0.0f, std::cos(radian),  std::sin(radian), 0.0f},
+		{0.0f, -std::sin(radian), std::cos(radian), 0.0f},
 		{0.0f, 0.0f,               0.0f,              1.0f}
 	} };
 	return result;
@@ -53,9 +53,9 @@ Matrix4x4 MakeRotateXMatrix(float radian) {
 
 Matrix4x4 MakeRotateYMatrix(float radian) {
 	Matrix4x4 result = { {
-		{std::cosf(radian), 0.0f, -std::sinf(radian), 0.0f},
+		{std::cos(radian), 0.0f, -std::sin(radian), 0.0f},
 		{0.0f,              1.0f, 0.0f,               0.0f},
-		{std::sinf(radian), 0.0f, std::cosf(radian),  0.0f},
+		{std::sin(radian), 0.0f, std::cos(radian),  0.0f},
 		{0.0f,              0.0f, 0.0f,               1.0f}
 	} };
 	return result;
@@ -63,8 +63,8 @@ Matrix4x4 MakeRotateYMatrix(float radian) {
 
 Matrix4x4 MakeRotateZMatrix(float radian) {
 	Matrix4x4 result = { {
-		{std::cosf(radian),  std::sinf(radian), 0.0f, 0.0f},
-		{-std::sinf(radian), std::cosf(radian), 0.0f, 0.0f},
+		{std::cos(radian),  std::sin(radian), 0.0f, 0.0f},
+		{-std::sin(radian), std::cos(radian), 0.0f, 0.0f},
 		{0.0f,               0.0f,              1.0f, 0.0f},
 		{0.0f,               0.0f,              0.0f, 1.0f}
 	} };
@@ -194,18 +194,18 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, con
 	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
 
 		float lat = -pi / 2.0f + kLatEvery * latIndex; // 現在の緯度
-		float cosLat = std::cosf(lat);
-		float sinLat = std::sinf(lat);
-		float cosLatNext = std::cosf(lat + kLatEvery);
-		float sinLatNext = std::sinf(lat + kLatEvery);
+		float cosLat = std::cos(lat);
+		float sinLat = std::sin(lat);
+		float cosLatNext = std::cos(lat + kLatEvery);
+		float sinLatNext = std::sin(lat + kLatEvery);
 
 		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
 			float lon = lonIndex * kLonEvery; // 現在の経度
 
-			float cosLon = std::cosf(lon);
-			float sinLon = std::sinf(lon);
-			float cosLonNext = std::cosf(lon + kLonEvery);
-			float sinLonNext = std::sinf(lon + kLonEvery);
+			float cosLon = std::cos(lon);
+			float sinLon = std::sin(lon);
+			float cosLonNext = std::cos(lon + kLonEvery);
+			float sinLonNext = std::sin(lon + kLonEvery);
 
 			// world座標系でのa, b, cを求める
 			Vector3 a, b, c;

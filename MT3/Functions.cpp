@@ -17,8 +17,8 @@ Matrix4x4 Multiply(const Matrix4x4& m1, const Matrix4x4& m2) {
 Matrix4x4 MakeRotateXMatrix(float radian) {
 	Matrix4x4 result = { {
 		{1.0f, 0.0f,               0.0f,              0.0f},
-		{0.0f, std::cosf(radian),  std::sinf(radian), 0.0f},
-		{0.0f, -std::sinf(radian), std::cosf(radian), 0.0f},
+		{0.0f, std::cos(radian),  std::sin(radian), 0.0f},
+		{0.0f, -std::sin(radian), std::cos(radian), 0.0f},
 		{0.0f, 0.0f,               0.0f,              1.0f}
 	} };
 	return result;
@@ -26,9 +26,9 @@ Matrix4x4 MakeRotateXMatrix(float radian) {
 
 Matrix4x4 MakeRotateYMatrix(float radian) {
 	Matrix4x4 result = { {
-		{std::cosf(radian), 0.0f, -std::sinf(radian), 0.0f},
+		{std::cos(radian), 0.0f, -std::sin(radian), 0.0f},
 		{0.0f,              1.0f, 0.0f,               0.0f},
-		{std::sinf(radian), 0.0f, std::cosf(radian),  0.0f},
+		{std::sin(radian), 0.0f, std::cos(radian),  0.0f},
 		{0.0f,              0.0f, 0.0f,               1.0f}
 	} };
 	return result;
@@ -36,8 +36,8 @@ Matrix4x4 MakeRotateYMatrix(float radian) {
 
 Matrix4x4 MakeRotateZMatrix(float radian) {
 	Matrix4x4 result = { {
-		{std::cosf(radian),  std::sinf(radian), 0.0f, 0.0f},
-		{-std::sinf(radian), std::cosf(radian), 0.0f, 0.0f},
+		{std::cos(radian),  std::sin(radian), 0.0f, 0.0f},
+		{-std::sin(radian), std::cos(radian), 0.0f, 0.0f},
 		{0.0f,               0.0f,              1.0f, 0.0f},
 		{0.0f,               0.0f,              0.0f, 1.0f}
 	} };

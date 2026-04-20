@@ -1,10 +1,7 @@
 ﻿#pragma once
 #include "Matrix4x4.h"
-#include "Matrix4x4Function.h"
 #include "Vector3.h"
-#include "Vector3Operator.h"
-#include <cmath>
-#include <Novice.h>
+
 static const inline int kColumnWidth = 60;
 static const inline int kRowHeight = 20;
 

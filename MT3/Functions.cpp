@@ -1,4 +1,6 @@
 ﻿#include "Functions.h"
+#include <cmath>
+#include <Novice.h>
 // 透視投影行列
 Matrix4x4 MakePerspectiveFovMatrix(float fovy, float aspectRatio, float nearClip, float farClip) {
 	

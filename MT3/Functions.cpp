@@ -1,12 +1,13 @@
 ﻿#include "Functions.h"
 #include <cmath>
+#include <algorithm>
 
 // 1. 行列の加法
 Matrix4x4 Add(const Matrix4x4& m1, const Matrix4x4& m2) {
 	Matrix4x4 result;
 	for (size_t ai = 0; ai < 4; ai++) {
 		for (size_t bi = 0; bi < 4; bi++) {
-			result.m[bi][ai] = m1.m[bi][ai] + m2.m[bi][ai];
+			result.m[ai][bi] = m1.m[ai][bi] + m2.m[ai][bi];
 		}
 	}
 	return result;
@@ -47,6 +48,35 @@ Matrix4x4 Inverse(const Matrix4x4& m) {
 	Matrix4x4 result = MakeIdentity4x4();
 
 	for (size_t i = 0; i < 4; i++) {
+
+		// --- 0. 部分ピボット選択 ---
+		// i列目の中で、i行目以降から絶対値が最大の要素を持つ行を探す
+		size_t maxRow = i;
+		float maxVal = std::abs(matrix.m[i][i]);
+
+		for (size_t j = i + 1; j < 4; j++) {
+			float val = std::abs(matrix.m[j][i]);
+			if (val > maxVal) {
+				maxVal = val;
+				maxRow = j;
+			}
+		}
+
+		// もし最大の絶対値がほぼ0なら、逆行列は存在しない（特異行列）
+		// ※ここでは計算を打ち切って、安全のために単位行列を返す処理にしています
+		const float epsilon = 1e-6f;
+		if (maxVal < epsilon) {
+			return MakeIdentity4x4(); 
+		}
+
+		// 最大の絶対値を持つ行が現在の行(i)と違う場合、行全体を入れ替える
+		if (maxRow != i) {
+			for (size_t j = 0; j < 4; j++) {
+				std::swap(matrix.m[i][j], matrix.m[maxRow][j]);
+				std::swap(result.m[i][j], result.m[maxRow][j]);
+			}
+		}
+
 		// --- 1. ピボット（対角成分）の処理 ---
 		float pivot = matrix.m[i][i];
 

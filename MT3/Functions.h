@@ -12,6 +12,7 @@ Vector3 ClosestPoint(const Vector3& point, const Segment& segment);
 
 void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix);
 void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color);
+Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix);
 
 void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix, const char* label);
 void VectorScreenPrintf(int x, int y, const Vector3& vector, const char* label);

@@ -1,5 +1,8 @@
 ﻿#include <Novice.h>
 #include "Functions.h"
+#include "Matrix4x4.h"
+#include "Matrix4x4Function.h"
+#include "Sphere.h"
 
 const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_02_00";
 
@@ -10,8 +13,17 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Novice::Initialize(kWindowTitle, 1280, 720);
 
 	// キー入力結果を受け取る箱
-	char keys[256] = {0};
-	char preKeys[256] = {0};
+	char keys[256] = { 0 };
+	char preKeys[256] = { 0 };
+
+	Segment segment{ {-2.0f,-1.0f,0.0f},{3.0f,2.0f,2.0f} };
+	Vector3 point{ -1.5f,0.6f,0.6f };
+
+	Vector3 project = Project(point - segment.origin, segment.diff);
+	Vector3 closestPoint = ClosestPoint(point, segment);
+
+	Sphere pointSphere{ 0.01f, point };
+	Sphere closestPointSphere{ 0.01f,closestPoint };
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -33,7 +45,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 		/// ↓描画処理ここから
 		///
-
+		
 		///
 		/// ↑描画処理ここまで
 		///

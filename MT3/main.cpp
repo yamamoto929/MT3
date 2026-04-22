@@ -5,12 +5,14 @@
 #include "Sphere.h"
 
 const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_02_00";
+const int kWindowWidth = 1280;
+const int kWindowHeight = 720;
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	// ライブラリの初期化
-	Novice::Initialize(kWindowTitle, 1280, 720);
+	Novice::Initialize(kWindowTitle, kWindowWidth, kWindowHeight);
 
 	// キー入力結果を受け取る箱
 	char keys[256] = { 0 };
@@ -25,6 +27,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Sphere pointSphere{ 0.01f, point };
 	Sphere closestPointSphere{ 0.01f,closestPoint };
 
+	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
+	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
+	
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -49,7 +54,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 		/// ↓描画処理ここから
 		///
-		
+		DrawSphere(pointSphere, viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
+		DrawSphere(closestPointSphere, viewProjectionMatrix, viewportMatrix, 0x000000FF);
 		///
 		/// ↑描画処理ここまで
 		///

@@ -43,10 +43,26 @@ Vector3 operator*(const Vector3& v, const float& s) {
 	return result;
 }
 
+Vector3 operator*(const float& s, const Vector3& v) {
+	Vector3 result = v;
+	result.x *= s;
+	result.y *= s;
+	result.z *= s;
+	return result;
+}
+
 //============================================
 // わりざん
 //============================================
 Vector3 operator/(const Vector3& v, const float& s) {
+	Vector3 result = v;
+	result.x /= s;
+	result.y /= s;
+	result.z /= s;
+	return result;
+}
+
+Vector3 operator/(const float& s, const Vector3& v) {
 	Vector3 result = v;
 	result.x /= s;
 	result.y /= s;

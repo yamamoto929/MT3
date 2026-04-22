@@ -1,5 +1,9 @@
 ﻿#include "Functions.h"
+#include "Matrix4x4Function.h"
 #include <algorithm> 
+#include <Novice.h>
+#include <numbers>
+#include <cmath>
 
 Vector3 Project(const Vector3& v1, const Vector3& v2) {
 	// 内積 
@@ -52,4 +56,122 @@ Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
 	t = std::clamp(t, 0.0f, 1.0f);
 
 	return segment.origin + t * segment.diff;
+}
+
+void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix) {
+	const float kGridHalfWidth = 2.0f;
+	// Gridの半分の幅
+	const uint32_t kSubdivision = 10;
+	// 分割数
+	const float kGridEvery = (kGridHalfWidth * 2.0f) / float(kSubdivision);
+	// 1つ分の長さ
+
+	// 奥から手前への線を順々に引いていく（Z軸に平行な線）
+	for (uint32_t xIndex = 0; xIndex <= kSubdivision; ++xIndex) {
+		// 現在のX座標を求める
+		float x = -kGridHalfWidth + (xIndex * kGridEvery);
+
+		// ワールド座標系上の始点と終点
+		Vector3 start{ x, 0.0f, kGridHalfWidth };
+		Vector3 end{ x, 0.0f, -kGridHalfWidth };
+
+		// スクリーン座標系まで変換をかける (World -> NDC -> Screen)
+		Vector3 startScreen = Transform(Transform(start, viewProjectionMatrix), viewportMatrix);
+		Vector3 endScreen = Transform(Transform(end, viewProjectionMatrix), viewportMatrix);
+
+		// 原点を通る軸（X=0）だけ色を濃く（黒に）する
+		unsigned int color = (x == 0.0f) ? 0x222222FF : 0xAAAAAAFF;
+
+		Novice::DrawLine(
+			int(startScreen.x), int(startScreen.y),
+			int(endScreen.x), int(endScreen.y),
+			color
+		);
+	}
+
+	// 左から右へ線を順々に引いていく（X軸に平行な線）
+	for (uint32_t zIndex = 0; zIndex <= kSubdivision; ++zIndex) {
+		// 現在のZ座標を求める
+		float z = -kGridHalfWidth + (zIndex * kGridEvery);
+
+		// ワールド座標系上の始点と終点
+		Vector3 start{ -kGridHalfWidth, 0.0f, z };
+		Vector3 end{ kGridHalfWidth, 0.0f, z };
+
+		// スクリーン座標系まで変換をかける (World -> NDC -> Screen)
+		Vector3 startScreen = Transform(Transform(start, viewProjectionMatrix), viewportMatrix);
+		Vector3 endScreen = Transform(Transform(end, viewProjectionMatrix), viewportMatrix);
+
+		// 原点を通る軸（Z=0）だけ色を濃く（黒に）する
+		unsigned int color = (z == 0.0f) ? 0x222222FF : 0xAAAAAAFF;
+
+		Novice::DrawLine(
+			int(startScreen.x), int(startScreen.y),
+			int(endScreen.x), int(endScreen.y),
+			color
+		);
+	}
+}
+
+void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
+	const uint32_t kSubdivision = 10;
+
+	float pi = std::numbers::pi_v<float>;
+
+	const float kLonEvery = (2.0f * pi) / kSubdivision;
+
+	const float kLatEvery = pi / kSubdivision;
+
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
+
+		float lat = -pi / 2.0f + kLatEvery * latIndex; // 現在の緯度
+		float cosLat = std::cos(lat);
+		float sinLat = std::sin(lat);
+		float cosLatNext = std::cos(lat + kLatEvery);
+		float sinLatNext = std::sin(lat + kLatEvery);
+
+		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
+			float lon = lonIndex * kLonEvery; // 現在の経度
+
+			float cosLon = std::cos(lon);
+			float sinLon = std::sin(lon);
+			float cosLonNext = std::cos(lon + kLonEvery);
+			float sinLonNext = std::sin(lon + kLonEvery);
+
+			// world座標系でのa, b, cを求める
+			Vector3 a, b, c;
+			a = { cosLat * cosLon, sinLat, cosLat * sinLon };
+			b = { cosLatNext * cosLon, sinLatNext, cosLatNext * sinLon };
+			c = { cosLat * cosLonNext, sinLat, cosLat * sinLonNext };
+
+			a = { a.x * sphere.radius + sphere.center.x, a.y * sphere.radius + sphere.center.y, a.z * sphere.radius + sphere.center.z };
+			b = { b.x * sphere.radius + sphere.center.x, b.y * sphere.radius + sphere.center.y, b.z * sphere.radius + sphere.center.z };
+			c = { c.x * sphere.radius + sphere.center.x, c.y * sphere.radius + sphere.center.y, c.z * sphere.radius + sphere.center.z };
+
+			// a, b, cをScreen座標系まで変換...
+			Vector3 screenA = Transform(Transform(a, viewProjectionMatrix), viewportMatrix);
+			Vector3 screenB = Transform(Transform(b, viewProjectionMatrix), viewportMatrix);
+			Vector3 screenC = Transform(Transform(c, viewProjectionMatrix), viewportMatrix);
+			// ab, bcで線を引く
+			Novice::DrawLine(int(screenA.x), int(screenA.y), int(screenB.x), int(screenB.y), color);
+			Novice::DrawLine(int(screenA.x), int(screenA.y), int(screenC.x), int(screenC.y), color);
+		}
+	}
+}
+
+void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix, const char* label) {
+	Novice::ScreenPrintf(x, y, label);
+	for (int row = 0; row < 4; ++row) {
+		for (int column = 0; column < 4; ++column) {
+			Novice::ScreenPrintf(
+				x + column * kColumnWidth, y + (row + 1) * kRowHeight, "%6.02f", matrix.m[row][column]);
+		}
+	}
+}
+
+void VectorScreenPrintf(int x, int y, const Vector3& vector, const char* label) {
+	Novice::ScreenPrintf(x, y, "%.02f", vector.x);
+	Novice::ScreenPrintf(x + kColumnWidth, y, "%.02f", vector.y);
+	Novice::ScreenPrintf(x + kColumnWidth * 2, y, "%.02f", vector.z);
+	Novice::ScreenPrintf(x + kColumnWidth * 3, y, "%s", label);
 }

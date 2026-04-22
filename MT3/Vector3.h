@@ -24,7 +24,11 @@ Vector3 operator-(const Vector3& lhs, const Vector3& rhs);
 //============================================
 Vector3 operator*(const Vector3& v, const float& s);
 
+Vector3 operator*(const float& s, const Vector3& v);
+
 //============================================
 // わりざん
 //============================================
 Vector3 operator/(const Vector3& v, const float& s);
+
+Vector3 operator/(const float& s, const Vector3& v);

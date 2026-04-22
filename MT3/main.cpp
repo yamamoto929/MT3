@@ -54,8 +54,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 		/// ↓描画処理ここから
 		///
+		DrawGrid(viewProjectionMatrix, viewportMatrix);
 		DrawSphere(pointSphere, viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
 		DrawSphere(closestPointSphere, viewProjectionMatrix, viewportMatrix, 0x000000FF);
+
+		Vector3 start = Transform(Transform(segment.origin, viewProjectionMatrix), viewportMatrix);
+		Vector3 end= Transform(Transform(segment.origin+segment.diff, viewProjectionMatrix), viewportMatrix);
+		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
 		///
 		/// ↑描画処理ここまで
 		///

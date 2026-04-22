@@ -2,13 +2,9 @@
 #include "Vector3.h"
 #include "Matrix4x4.h"
 #include "Sphere.h"
-#include "Line.h"
 #include <cstdint>
 const int kColumnWidth = 20;
 const int kRowHeight = 60;
-
-Vector3 Project(const Vector3& v1, const Vector3& v2);
-Vector3 ClosestPoint(const Vector3& point, const Segment& segment);
 
 void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix);
 void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color);
@@ -25,4 +21,5 @@ Matrix4x4 MakeRotateXMatrix(float radian);
 Matrix4x4 MakeRotateYMatrix(float radian);
 Matrix4x4 MakeRotateZMatrix(float radian);
 Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate);
+bool IsCollision(const Sphere& s1, const Sphere& s2) ;
 float Cot(float a);

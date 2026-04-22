@@ -207,7 +207,6 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClInclude Include="Matrix4x4Function.h" />
     <ClInclude Include="Sphere.h" />
     <ClInclude Include="Vector3.h" />
-    <ClInclude Include="Line.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

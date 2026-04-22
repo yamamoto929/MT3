@@ -1,5 +1,6 @@
 ﻿#include <Novice.h>
 #include <imgui.h>
+#include <cmath>
 #include "Functions.h"
 #include "Matrix4x4.h"
 #include "Matrix4x4Function.h"
@@ -22,15 +23,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
 
-	Segment segment{ {-2.0f,-1.0f,0.0f},{3.0f,2.0f,2.0f} };
-	Vector3 point{ -1.5f,0.6f,0.6f };
+	Sphere sphere[2]{};
+	sphere[0].radius = 1.0f;
+	sphere[0].center = Vector3{ 0.0f,1.0f,0.0f };
 
-	Vector3 project = Project(point - segment.origin, segment.diff);
-	Vector3 closestPoint = ClosestPoint(point, segment);
+	sphere[1].radius = 1.0f;
+	sphere[1].center = Vector3{ 2.0f,1.0f,0.0f };
+	int mouseX = 0;
+	int mouseY = 0;
 
-	Sphere pointSphere{ 0.01f, point };
-	Sphere closestPointSphere{ 0.01f,closestPoint };
-	
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -43,8 +44,51 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 		/// ↓更新処理ここから
 		///
+
+		if (Novice::IsPressMouse(1)) {
+			int curMouseX;
+			int curMouseY;
+
+			Novice::GetMousePosition(&curMouseX, &curMouseY);
+			cameraRotate.x += float(mouseY - curMouseY)/1000.0f;
+			cameraRotate.y += float(mouseX - curMouseX)/1000.0f;
+			mouseX = curMouseX;
+			mouseY = curMouseY;
+		} else {
+			Novice::GetMousePosition(&mouseX, &mouseY);
+		}
+
+		float speed = 0.1f; 
+
+		float yaw = cameraRotate.y;
+
 		
+		Vector3 forward = { std::sin(yaw), 0.0f, std::cos(yaw) };
 		
+		Vector3 right = { std::cos(yaw), 0.0f, -std::sin(yaw) };
+
+		if (keys[DIK_W]) {
+			cameraTranslate.x += forward.x * speed;
+			cameraTranslate.z += forward.z * speed;
+		} else if (keys[DIK_S]) {
+			cameraTranslate.x -= forward.x * speed;
+			cameraTranslate.z -= forward.z * speed;
+		}
+
+		if (keys[DIK_A]) {
+			cameraTranslate.x -= right.x * speed;
+			cameraTranslate.z -= right.z * speed;
+		} else if (keys[DIK_D]) {
+			cameraTranslate.x += right.x * speed;
+			cameraTranslate.z += right.z * speed;
+		}
+
+		if (keys[DIK_SPACE]) {
+			cameraTranslate.y += speed;
+		} else if (keys[DIK_LSHIFT]) {
+			cameraTranslate.y -= speed;
+		}
+
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
 		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
 		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
@@ -59,30 +103,28 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
-		DrawSphere(pointSphere, viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
-		DrawSphere(closestPointSphere, viewProjectionMatrix, viewportMatrix, 0x000000FF);
 
-		Vector3 start = Transform(Transform(segment.origin, viewProjectionMatrix), viewportMatrix);
-		Vector3 end= Transform(Transform(segment.origin+segment.diff, viewProjectionMatrix), viewportMatrix);
-		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
+		DrawSphere(sphere[0], viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
+		if (IsCollision(sphere[0], sphere[1])) {
+			DrawSphere(sphere[1], viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
+		} else {
+			DrawSphere(sphere[1], viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
+		}
+		
+
 
 		ImGui::Begin("Window");
-		ImGui::InputFloat3("point",
-			&point.x,
-			"%.3f",
-			ImGuiInputTextFlags_ReadOnly);
-		ImGui::InputFloat3("Segment origin",
-			&segment.origin.x,
-			"%.3f",
-			ImGuiInputTextFlags_ReadOnly);
-		ImGui::InputFloat3("Segment diff",
-			&segment.diff.x,
-			"%.3f",
-			ImGuiInputTextFlags_ReadOnly);
-		ImGui::InputFloat3("Project",
-			&project.x,
-			"%.3f",
-			ImGuiInputTextFlags_ReadOnly);
+		ImGui::InputFloat3("sphere[0].center",
+			&sphere[0].center.x,
+			"%.3f");
+		ImGui::InputFloat("sphere[0].radius",
+			&sphere[0].radius);
+
+		ImGui::InputFloat3("sphere[1].center",
+			&sphere[1].center.x,
+			"%.3f");
+		ImGui::InputFloat("sphere[1].radius",
+			&sphere[1].radius);
 		ImGui::End();
 		///
 		/// ↑描画処理ここまで

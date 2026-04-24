@@ -5,10 +5,15 @@
 #include "Matrix4x4.h"
 #include "Matrix4x4Function.h"
 #include "Sphere.h"
+#include "Plane.h"
 
 const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_02_00";
 const int kWindowWidth = 1280;
 const int kWindowHeight = 720;
+void MoveCamera(char keys[],Vector3& rotate,Vector3& translate);
+int mouseX = 0;
+int mouseY = 0;
+
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
@@ -23,15 +28,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
 
-	Sphere sphere[2]{};
-	sphere[0].radius = 1.0f;
-	sphere[0].center = Vector3{ 0.0f,1.0f,0.0f };
+	Sphere sphere{};
+	sphere.radius = 1.0f;
+	sphere.center = Vector3{ 0.0f,1.0f,0.0f };
 
-	sphere[1].radius = 1.0f;
-	sphere[1].center = Vector3{ 2.0f,1.0f,0.0f };
-	int mouseX = 0;
-	int mouseY = 0;
-
+	Plane plane{};
+	plane.normal = Vector3{0.0f,1.0f,0.0f};
+	plane.distance = 1.0f;
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -45,49 +48,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓更新処理ここから
 		///
 
-		if (Novice::IsPressMouse(1)) {
-			int curMouseX;
-			int curMouseY;
-
-			Novice::GetMousePosition(&curMouseX, &curMouseY);
-			cameraRotate.x += float(mouseY - curMouseY)/1000.0f;
-			cameraRotate.y += float(mouseX - curMouseX)/1000.0f;
-			mouseX = curMouseX;
-			mouseY = curMouseY;
-		} else {
-			Novice::GetMousePosition(&mouseX, &mouseY);
-		}
-
-		float speed = 0.1f; 
-
-		float yaw = cameraRotate.y;
-
-		
-		Vector3 forward = { std::sin(yaw), 0.0f, std::cos(yaw) };
-		
-		Vector3 right = { std::cos(yaw), 0.0f, -std::sin(yaw) };
-
-		if (keys[DIK_W]) {
-			cameraTranslate.x += forward.x * speed;
-			cameraTranslate.z += forward.z * speed;
-		} else if (keys[DIK_S]) {
-			cameraTranslate.x -= forward.x * speed;
-			cameraTranslate.z -= forward.z * speed;
-		}
-
-		if (keys[DIK_A]) {
-			cameraTranslate.x -= right.x * speed;
-			cameraTranslate.z -= right.z * speed;
-		} else if (keys[DIK_D]) {
-			cameraTranslate.x += right.x * speed;
-			cameraTranslate.z += right.z * speed;
-		}
-
-		if (keys[DIK_SPACE]) {
-			cameraTranslate.y += speed;
-		} else if (keys[DIK_LSHIFT]) {
-			cameraTranslate.y -= speed;
-		}
+		MoveCamera(keys, cameraRotate, cameraTranslate);
 
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
 		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
@@ -103,28 +64,27 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
-
-		DrawSphere(sphere[0], viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
-		if (IsCollision(sphere[0], sphere[1])) {
-			DrawSphere(sphere[1], viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
+		DrawPlane(plane, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
+		
+		if (IsCollision(sphere, plane)) {
+			DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
 		} else {
-			DrawSphere(sphere[1], viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
+			DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
 		}
 		
 
 
 		ImGui::Begin("Window");
-		ImGui::InputFloat3("sphere[0].center",
-			&sphere[0].center.x,
-			"%.3f");
-		ImGui::InputFloat("sphere[0].radius",
-			&sphere[0].radius);
+		ImGui::DragFloat3("sphere.center",
+			&sphere.center.x,0.01f);
+		ImGui::DragFloat("sphere.radius",
+			&sphere.radius, 0.01f,0.1f,3.0f);
 
-		ImGui::InputFloat3("sphere[1].center",
-			&sphere[1].center.x,
-			"%.3f");
-		ImGui::InputFloat("sphere[1].radius",
-			&sphere[1].radius);
+		ImGui::DragFloat3("plane.normal",
+			&plane.normal.x, 0.01f);
+		plane.normal = Normalize(plane.normal);
+		ImGui::DragFloat("plane.distance",
+			&plane.distance, 0.01f);
 		ImGui::End();
 		///
 		/// ↑描画処理ここまで
@@ -143,3 +103,49 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Novice::Finalize();
 	return 0;
 }
+
+void MoveCamera(char keys[], Vector3& rotate, Vector3& translate) {
+	if (Novice::IsPressMouse(1)) {
+		int curMouseX;
+		int curMouseY;
+
+		Novice::GetMousePosition(&curMouseX, &curMouseY);
+		rotate.x += float(mouseY - curMouseY) / 1000.0f;
+		rotate.y += float(mouseX - curMouseX) / 1000.0f;
+		mouseX = curMouseX;
+		mouseY = curMouseY;
+	} else {
+		Novice::GetMousePosition(&mouseX, &mouseY);
+	}
+
+	float speed = 0.1f;
+
+	float yaw = rotate.y;
+
+
+	Vector3 forward = { std::sin(yaw), 0.0f, std::cos(yaw) };
+
+	Vector3 right = { std::cos(yaw), 0.0f, -std::sin(yaw) };
+
+	if (keys[DIK_W]) {
+		translate.x += forward.x * speed;
+		translate.z += forward.z * speed;
+	} else if (keys[DIK_S]) {
+		translate.x -= forward.x * speed;
+		translate.z -= forward.z * speed;
+	}
+
+	if (keys[DIK_A]) {
+		translate.x -= right.x * speed;
+		translate.z -= right.z * speed;
+	} else if (keys[DIK_D]) {
+		translate.x += right.x * speed;
+		translate.z += right.z * speed;
+	}
+
+	if (keys[DIK_SPACE]) {
+		translate.y += speed;
+	} else if (keys[DIK_LSHIFT]) {
+		translate.y -= speed;
+	}
+};

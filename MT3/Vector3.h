@@ -6,6 +6,7 @@ struct Vector3 {
 };
 float Length(const Vector3& v);
 Vector3 Normalize(const Vector3& v);
+
 //============================================
 // たしざん
 //============================================

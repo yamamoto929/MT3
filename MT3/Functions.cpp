@@ -24,7 +24,7 @@ Matrix4x4 MakeOrthographicMatrix(float left, float top, float right, float botto
 		{2.0f / (right - left),           0.0f,                           0.0f,                           0.0f},
 		{0.0f,                            2.0f / (top - bottom),          0.0f,                           0.0f},
 		{0.0f,                            0.0f,                           1.0f / (farClip - nearClip),    0.0f},
-		{ (left + right) / (left - right),(top + bottom) / (bottom - top),nearClip / (farClip - nearClip),1.0f}
+		{ (left + right) / (left - right),(top + bottom) / (bottom - top),nearClip / (nearClip - farClip),1.0f}
 	} };
 
 	return result;
@@ -212,8 +212,8 @@ void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix4x4, con
 	Vector3 perpendiculars[4];
 	perpendiculars[0] = Normalize(Perpendicular(plane.normal));
 	perpendiculars[1] = Vector3{-perpendiculars[0].x,-perpendiculars[0].y,-perpendiculars[0].z};
-	perpendiculars[2] = Cross();
-	perpendiculars[3] = ;
+	perpendiculars[2] = Cross(plane.normal,perpendiculars[0]);
+	perpendiculars[3] = Vector3{ -perpendiculars[2].x,-perpendiculars[2].y,-perpendiculars[2].z };
 }
 
 bool IsCollision(const Sphere& s1, const Sphere& s2) {
@@ -269,4 +269,12 @@ Vector3 Perpendicular(const Vector3& vector) {
 		return Vector3{ -vector.y,vector.x,0.0f };
 	}
 	return Vector3{ 0.0f,-vector.z,vector.y };
+}
+
+Vector3 Cross(const Vector3& v1, const Vector3& v2) {
+	Vector3 result{};
+	result.x = v1.y * v2.z - v1.z * v2.y;
+	result.y = v1.z * v2.x - v1.x * v2.z;
+	result.z = v1.x * v2.y - v1.y * v2.x;
+	return result;
 }

@@ -26,3 +26,4 @@ bool IsCollision(const Sphere& s1, const Sphere& s2) ;
 bool IsCollision(const Sphere& sphere, const Plane& plane);
 float Cot(float a);
 Vector3 Perpendicular(const Vector3& vector);
+Vector3 Cross(const Vector3& v1, const Vector3& v2);

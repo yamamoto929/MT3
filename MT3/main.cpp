@@ -61,20 +61,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
 		DrawPlane(plane, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
 		
-		if (IsCollision(sphere, plane)) {
-			DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
-		} else {
-			DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
-		}
+		
 		
 
 
 		ImGui::Begin("Window");
-		ImGui::DragFloat3("sphere.center",
-			&sphere.center.x,0.01f);
-		ImGui::DragFloat("sphere.radius",
-			&sphere.radius, 0.01f,0.1f,3.0f);
-
+		
 		ImGui::DragFloat3("plane.normal",
 			&plane.normal.x, 0.01f);
 		plane.normal = Normalize(plane.normal);

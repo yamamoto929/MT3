@@ -9,9 +9,7 @@
 const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_02_00";
 const int kWindowWidth = 1280;
 const int kWindowHeight = 720;
-void MoveCamera(char keys[],Vector3& rotate,Vector3& translate);
-int mouseX = 0;
-int mouseY = 0;
+void MoveCamera(char keys[], Vector3& rotate, Vector3& translate);
 
 
 // Windowsアプリでのエントリーポイント(main関数)
@@ -28,8 +26,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
 
 	Plane plane{};
-	plane.normal = Vector3{0.0f,1.0f,0.0f};
+	plane.normal = Vector3{ 0.0f,1.0f,0.0f };
 	plane.distance = 1.0f;
+
+	Segment segment;
+	segment.diff = Vector3{ 0.0f,0.5f,0.0f };
+	segment.origin = Vector3{ 0.0f,0.5f,0.0f };
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -44,6 +46,20 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 
 		MoveCamera(keys, cameraRotate, cameraTranslate);
+
+		ImGui::Begin("Debug");
+
+		ImGui::DragFloat3("plane.normal",
+			&plane.normal.x, 0.01f);
+		plane.normal = Normalize(plane.normal);
+		ImGui::DragFloat("plane.distance",
+			&plane.distance, 0.01f);
+
+		ImGui::DragFloat3("segment.origin",
+			&segment.origin.x, 0.01f);
+		ImGui::DragFloat3("segment.diff",
+			&segment.diff.x, 0.01f);
+		ImGui::End();
 
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
 		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
@@ -60,19 +76,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
 		DrawPlane(plane, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
-		
-		
-		
+		if (IsCollision(segment, plane)) {
+			DrawSegment(segment, viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
+		} else {
+			DrawSegment(segment, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
+		}
 
-
-		ImGui::Begin("Window");
-		
-		ImGui::DragFloat3("plane.normal",
-			&plane.normal.x, 0.01f);
-		plane.normal = Normalize(plane.normal);
-		ImGui::DragFloat("plane.distance",
-			&plane.distance, 0.01f);
-		ImGui::End();
 		///
 		/// ↑描画処理ここまで
 		///
@@ -92,9 +101,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 }
 
 void MoveCamera(char keys[], Vector3& rotate, Vector3& translate) {
+
+	static int mouseX = 0;
+	static int mouseY = 0;
 	if (Novice::IsPressMouse(1)) {
 		int curMouseX;
 		int curMouseY;
+
 
 		Novice::GetMousePosition(&curMouseX, &curMouseY);
 		rotate.x += float(mouseY - curMouseY) / 1000.0f;

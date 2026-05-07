@@ -162,8 +162,6 @@ void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMa
 	}
 }
 
-
-
 void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
 	Vector3 center = plane.distance * plane.normal;
 	Vector3 perpendiculars[4];
@@ -178,12 +176,69 @@ void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const 
 		Vector3 point = center + extend;
 		points[index] = Transform(Transform(point, viewProjectionMatrix), viewportMatrix);
 	}
-	
+
 	Novice::DrawLine(int(points[1].x), int(points[1].y), int(points[2].x), int(points[2].y), color);
 	Novice::DrawLine(int(points[1].x), int(points[1].y), int(points[3].x), int(points[3].y), color);
 	Novice::DrawLine(int(points[3].x), int(points[3].y), int(points[0].x), int(points[0].y), color);
 	Novice::DrawLine(int(points[2].x), int(points[2].y), int(points[0].x), int(points[0].y), color);
 }
+
+void DrawSegment(const Segment& segment, const Matrix4x4& viewProjectionMatrix, 
+	const Matrix4x4& viewportMatrix, uint32_t color) {
+	Vector3 start = Transform(Transform(segment.origin, viewProjectionMatrix), viewportMatrix);
+	Vector3 end = Transform(Transform(segment.origin + segment.diff, viewProjectionMatrix), viewportMatrix);
+	Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), color);
+}
+
+// ===================================================================
+// 線分
+// ===================================================================
+bool IsCollision(const Segment& segment, const Plane& plane) {
+	float dot = Dot(segment.diff, plane.normal);
+
+	if (dot == 0.0f) {
+		return false;
+	}
+
+	float t = (plane.distance - Dot(segment.origin, plane.normal)) / dot;
+
+	if (t >= 0.0f && t <= 1.0f) {
+		return true;
+	}
+
+	return false;
+}
+// ===================================================================
+// 直線
+// ===================================================================
+bool IsCollision(const Line& line, const Plane& plane) {
+	float dot = Dot(line.diff, plane.normal);
+
+	if (dot == 0.0f) {
+		return false;
+	}
+
+	return true;
+}
+// ===================================================================
+// 半直線
+// ===================================================================
+bool IsCollision(const Ray& ray, const Plane& plane) {
+	float dot = Dot(ray.diff, plane.normal);
+
+	if (dot == 0.0f) {
+		return false;
+	}
+
+	float t = (plane.distance - Dot(ray.origin, plane.normal)) / dot;
+
+	if (t >= 0.0f) {
+		return true;
+	}
+
+	return false;
+}
+
 
 Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
 	Vector3 result{};

@@ -4,6 +4,7 @@
 #include "Functions.h"
 #include "Matrix4x4.h"
 #include "AABB.h"
+#include "Line.h"
 #include <algorithm>
 
 const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_02_07";
@@ -27,12 +28,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	AABB aabb{
 		.min{-0.5f,-0.5f,-0.5f},
-		.max{0.0f,0.0f,0.0f}
+		.max{0.5f,0.5f,0.5f}
 	};
 
-	Sphere sphere;
-	sphere.radius = 1.0f;
-	sphere.center = Vector3{ 2.0f,2.0f,2.0f };
+	Segment segment{
+		.origin{-0.7f,0.3f,0.0f},
+		.diff{2.0f,-0.5f,0.0f}
+	};
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -51,10 +53,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		ImGui::Begin("Debug");
 
-		ImGui::DragFloat3("sphere.min",
-			&sphere.center.x, 0.01f);
-		ImGui::DragFloat("sphere.radius",
-			&sphere.radius, 0.01f,0.01f,3.0f);
+		ImGui::DragFloat3("segment.origin",
+			&segment.origin.x, 0.01f);
+		ImGui::DragFloat3("segment.diff",
+			&segment.diff.x, 0.01f);
 
 		ImGui::DragFloat3("aabb.min",
 			&aabb.min.x, 0.01f);
@@ -83,8 +85,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
-		DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
-		if (IsCollision(aabb, sphere)) {
+		DrawSegment(segment, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
+		if (IsCollision(aabb, segment)) {
 			DrawAABB(aabb, viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
 		} else {
 			DrawAABB(aabb, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);

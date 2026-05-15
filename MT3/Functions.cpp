@@ -1,4 +1,5 @@
 ﻿#include "Functions.h"
+#define NOMINMAX
 #include <algorithm> 
 #include <Novice.h>
 #include <numbers>
@@ -109,9 +110,36 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 
 bool IsCollision(const AABB& aabb, const Segment& segment) {
 	
-	Vector3 tmin = {
-		aabb.min.x-segment.origin.x
+	Vector3 min = {
+		(aabb.min.x - segment.origin.x) / (aabb.max.x - aabb.min.x),
+		(aabb.min.y - segment.origin.y) / (aabb.max.y - aabb.min.y),
+		(aabb.min.z - segment.origin.z) / (aabb.max.z - aabb.min.z),
+	};
+
+	Vector3 max = {
+		(aabb.max.x - segment.origin.x) / (aabb.max.x - aabb.min.x),
+		(aabb.max.y - segment.origin.y) / (aabb.max.y - aabb.min.y),
+		(aabb.max.z - segment.origin.z) / (aabb.max.z - aabb.min.z),
+	};
+
+	Vector3 tNear;
+	tNear.x = std::min(min.x,max.x);
+	tNear.y = std::min(min.y, max.y);
+	tNear.z = std::min(min.z, max.z);
+	
+
+	Vector3 tFar;
+	tFar.x = std::max(min.x, max.x);
+	tFar.y = std::max(min.y, max.y);
+	tFar.z = std::max(min.z, max.z);
+
+	float tmin = std::max(std::max(tNear.x, tNear.y), tNear.z);
+	float tmax = std::min(std::min(tFar.x, tFar.y), tFar.z);
+
+	if (tmin <= tmax) {
+		return true;
 	}
+
 	return false;
 }
 

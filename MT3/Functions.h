@@ -9,6 +9,7 @@ const int kRowHeight = 60;
 
 void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix);
 void DrawAABB(const AABB& aabb, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color);
+void DrawSegment(const Segment& segment, const Matrix4x4& viewProjectionMatrix,const Matrix4x4& viewportMatrix, uint32_t color);
 Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix);
 
 void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix, const char* label);

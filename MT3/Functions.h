@@ -1,17 +1,14 @@
 ﻿#pragma once
 #include "Vector3.h"
 #include "Matrix4x4.h"
-#include "Triangle.h"
 #include "Line.h"
 #include "AABB.h"
-#include "Sphere.h"
 #include <cstdint>
 const int kColumnWidth = 20;
 const int kRowHeight = 60;
 
 void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix);
 void DrawAABB(const AABB& aabb, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color);
-void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color);
 Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix);
 
 void MatrixScreenPrintf(int x, int y, const Matrix4x4& matrix, const char* label);
@@ -24,7 +21,7 @@ Matrix4x4 MakeRotateXMatrix(float radian);
 Matrix4x4 MakeRotateYMatrix(float radian);
 Matrix4x4 MakeRotateZMatrix(float radian);
 Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate);
-bool IsCollision(const AABB& aabb, const Sphere& sphere);
+bool IsCollision(const AABB& aabb, const Segment& segment);
 float Cot(float a);
 Vector3 Perpendicular(const Vector3& vector);
 Vector3 Cross(const Vector3& v1, const Vector3& v2);

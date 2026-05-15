@@ -107,14 +107,9 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 	return result;
 }
 
-bool IsCollision(const AABB& aabb, const Sphere& sphere) {
-	Vector3 closestPoint{ std::clamp(sphere.center.x,aabb.min.x,aabb.max.x),
-						 std::clamp(sphere.center.y,aabb.min.y,aabb.max.y),
-						 std::clamp(sphere.center.z,aabb.min.z,aabb.max.z) };
-	float distance = Length(closestPoint - sphere.center);
-	if (distance <= sphere.radius) {
-		return true;
-	}
+bool IsCollision(const AABB& aabb, const Segment& segment) {
+	
+	
 	return false;
 }
 
@@ -205,50 +200,11 @@ void DrawAABB(const AABB& aabb, const Matrix4x4& viewProjectionMatrix, const Mat
 
 }
 
-void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
-	const uint32_t kSubdivision = 10;
-
-	float pi = std::numbers::pi_v<float>;
-
-	const float kLonEvery = (2.0f * pi) / kSubdivision;
-
-	const float kLatEvery = pi / kSubdivision;
-
-	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
-
-		float lat = -pi / 2.0f + kLatEvery * latIndex; // 現在の緯度
-		float cosLat = std::cos(lat);
-		float sinLat = std::sin(lat);
-		float cosLatNext = std::cos(lat + kLatEvery);
-		float sinLatNext = std::sin(lat + kLatEvery);
-
-		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
-			float lon = lonIndex * kLonEvery; // 現在の経度
-
-			float cosLon = std::cos(lon);
-			float sinLon = std::sin(lon);
-			float cosLonNext = std::cos(lon + kLonEvery);
-			float sinLonNext = std::sin(lon + kLonEvery);
-
-			// world座標系でのa, b, cを求める
-			Vector3 a, b, c;
-			a = { cosLat * cosLon, sinLat, cosLat * sinLon };
-			b = { cosLatNext * cosLon, sinLatNext, cosLatNext * sinLon };
-			c = { cosLat * cosLonNext, sinLat, cosLat * sinLonNext };
-
-			a = { a.x * sphere.radius + sphere.center.x, a.y * sphere.radius + sphere.center.y, a.z * sphere.radius + sphere.center.z };
-			b = { b.x * sphere.radius + sphere.center.x, b.y * sphere.radius + sphere.center.y, b.z * sphere.radius + sphere.center.z };
-			c = { c.x * sphere.radius + sphere.center.x, c.y * sphere.radius + sphere.center.y, c.z * sphere.radius + sphere.center.z };
-
-			// a, b, cをScreen座標系まで変換...
-			Vector3 screenA = Transform(Transform(a, viewProjectionMatrix), viewportMatrix);
-			Vector3 screenB = Transform(Transform(b, viewProjectionMatrix), viewportMatrix);
-			Vector3 screenC = Transform(Transform(c, viewProjectionMatrix), viewportMatrix);
-			// ab, bcで線を引く
-			Novice::DrawLine(int(screenA.x), int(screenA.y), int(screenB.x), int(screenB.y), color);
-			Novice::DrawLine(int(screenA.x), int(screenA.y), int(screenC.x), int(screenC.y), color);
-		}
-	}
+void DrawSegment(const Segment& segment, const Matrix4x4& viewProjectionMatrix,
+	const Matrix4x4& viewportMatrix, uint32_t color) {
+	Vector3 start = Transform(Transform(segment.origin, viewProjectionMatrix), viewportMatrix);
+	Vector3 end = Transform(Transform(segment.origin + segment.diff, viewProjectionMatrix), viewportMatrix);
+	Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), color);
 }
 
 Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {

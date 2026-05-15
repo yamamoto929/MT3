@@ -108,9 +108,9 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 }
 
 bool IsCollision(const AABB& aabb1, const AABB& aabb2) {
-	if ((a.min.x <= b.max.x && a.max.x >= b.min.x)
-		&& (a.min.y <= b.max.y && a.max.y >= b.min.y)
-		&& (a.min.z <= b.max.z && a.max.z >= b.min.z)) {
+	if ((aabb1.min.x <= aabb2.max.x && aabb1.max.x >= aabb2.min.x)
+		&& (aabb1.min.y <= aabb2.max.y && aabb1.max.y >= aabb2.min.y)
+		&& (aabb1.min.z <= aabb2.max.z && aabb1.max.z >= aabb2.min.z)) {
 
 		return true;
 	}
@@ -173,6 +173,34 @@ void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMa
 }
 
 void DrawAABB(const AABB& aabb, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
+	Vector3 vertices[8];
+	vertices[0] = aabb.min;
+	vertices[1] = Vector3{ aabb.max.x,aabb.min.y,aabb.min.z };
+	vertices[2] = Vector3{ aabb.min.x,aabb.max.y,aabb.min.z };
+	vertices[3] = Vector3{ aabb.max.x,aabb.max.y,aabb.min.z };
+	vertices[4] = Vector3{ aabb.min.x,aabb.min.y,aabb.max.z };
+	vertices[5] = Vector3{ aabb.max.x,aabb.min.y,aabb.max.z };
+	vertices[6] = Vector3{ aabb.min.x,aabb.max.y,aabb.max.z };
+	vertices[7] = aabb.max;
+
+	Vector3 screenVertices[8];
+	for (int i = 0;i < 8;++i) {
+		screenVertices[i] = Transform(Transform(vertices[i], viewProjectionMatrix), viewportMatrix);
+	}
+	
+	Novice::DrawLine(int(screenVertices[0].x), int(screenVertices[0].y),int(screenVertices[1].x), int(screenVertices[1].y),color);
+	Novice::DrawLine(int(screenVertices[1].x), int(screenVertices[1].y),int(screenVertices[3].x), int(screenVertices[3].y),color);
+	Novice::DrawLine(int(screenVertices[3].x), int(screenVertices[3].y),int(screenVertices[2].x), int(screenVertices[2].y),color);
+	Novice::DrawLine(int(screenVertices[2].x), int(screenVertices[2].y),int(screenVertices[0].x), int(screenVertices[0].y),color);
+	Novice::DrawLine(int(screenVertices[4].x), int(screenVertices[4].y),int(screenVertices[5].x), int(screenVertices[5].y),color);
+	Novice::DrawLine(int(screenVertices[5].x), int(screenVertices[5].y),int(screenVertices[7].x), int(screenVertices[7].y),color);
+	Novice::DrawLine(int(screenVertices[7].x), int(screenVertices[7].y),int(screenVertices[6].x), int(screenVertices[6].y),color);
+	Novice::DrawLine(int(screenVertices[6].x), int(screenVertices[6].y),int(screenVertices[4].x), int(screenVertices[4].y),color);
+	
+	Novice::DrawLine(int(screenVertices[0].x), int(screenVertices[0].y),int(screenVertices[4].x), int(screenVertices[4].y),color);
+	Novice::DrawLine(int(screenVertices[1].x), int(screenVertices[1].y),int(screenVertices[5].x), int(screenVertices[5].y),color);
+	Novice::DrawLine(int(screenVertices[2].x), int(screenVertices[2].y),int(screenVertices[6].x), int(screenVertices[6].y),color);
+	Novice::DrawLine(int(screenVertices[3].x), int(screenVertices[3].y),int(screenVertices[7].x), int(screenVertices[7].y),color);
 
 }
 

@@ -194,7 +194,7 @@ bool IsCollision(const Segment& segment, const Triangle& triangle) {
 
 	float dot = Dot(b, n);
 
-	if (std::fabs(dot) < 0.0001f) {
+	if (std::abs(dot) < 0.0001f) {
 		return false;
 	}
 
@@ -225,21 +225,100 @@ bool IsCollision(const Segment& segment, const Triangle& triangle) {
 	}
 
 	return false;
-}// ===================================================================
+}
+// ===================================================================
 // 直線
 // ===================================================================
 bool IsCollision(const Line& line, const Triangle& triangle) {
 
-	line;
-	triangle;
-	return true;
+	Vector3 v1 = triangle.vertices[1] - triangle.vertices[0];
+	Vector3 v2 = triangle.vertices[2] - triangle.vertices[0];
+
+	Vector3 n = Normalize(Cross(v1, v2));
+
+	float d = Dot(triangle.vertices[0], n);
+
+	Vector3 b = line.diff;
+
+	float dot = Dot(b, n);
+
+	if (std::abs(dot) < 0.0001f) {
+		return false;
+	}
+
+	float t = (d - Dot(line.origin, n)) / dot;
+
+	if (t < 0.0f || t > 1.0f) {
+		return false;
+	}
+
+	Vector3 p = line.origin + b * t;
+
+	Vector3 cross01 = Cross(
+		triangle.vertices[1] - triangle.vertices[0],
+		p - triangle.vertices[0]);
+
+	Vector3 cross12 = Cross(
+		triangle.vertices[2] - triangle.vertices[1],
+		p - triangle.vertices[1]);
+
+	Vector3 cross20 = Cross(
+		triangle.vertices[0] - triangle.vertices[2],
+		p - triangle.vertices[2]);
+
+	if (Dot(cross01, n) >= 0.0f &&
+		Dot(cross12, n) >= 0.0f &&
+		Dot(cross20, n) >= 0.0f) {
+		return true;
+	}
+
+	return false;
 }
 // ===================================================================
 // 半直線
 // ===================================================================
 bool IsCollision(const Ray& ray, const Triangle& triangle) {
-	ray;
-	triangle;
+	Vector3 v1 = triangle.vertices[1] - triangle.vertices[0];
+	Vector3 v2 = triangle.vertices[2] - triangle.vertices[0];
+
+	Vector3 n = Normalize(Cross(v1, v2));
+
+	float d = Dot(triangle.vertices[0], n);
+
+	Vector3 b = ray.diff;
+
+	float dot = Dot(b, n);
+
+	if (std::abs(dot) < 0.0001f) {
+		return false;
+	}
+
+	float t = (d - Dot(ray.origin, n)) / dot;
+
+	if (t < 0.0f || t > 1.0f) {
+		return false;
+	}
+
+	Vector3 p = ray.origin + b * t;
+
+	Vector3 cross01 = Cross(
+		triangle.vertices[1] - triangle.vertices[0],
+		p - triangle.vertices[0]);
+
+	Vector3 cross12 = Cross(
+		triangle.vertices[2] - triangle.vertices[1],
+		p - triangle.vertices[1]);
+
+	Vector3 cross20 = Cross(
+		triangle.vertices[0] - triangle.vertices[2],
+		p - triangle.vertices[2]);
+
+	if (Dot(cross01, n) >= 0.0f &&
+		Dot(cross12, n) >= 0.0f &&
+		Dot(cross20, n) >= 0.0f) {
+		return true;
+	}
+
 	return false;
 }
 

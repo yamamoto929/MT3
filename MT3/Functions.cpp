@@ -111,15 +111,15 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 bool IsCollision(const AABB& aabb, const Segment& segment) {
 	
 	Vector3 min = {
-		(aabb.min.x - segment.origin.x) / (aabb.max.x - aabb.min.x),
-		(aabb.min.y - segment.origin.y) / (aabb.max.y - aabb.min.y),
-		(aabb.min.z - segment.origin.z) / (aabb.max.z - aabb.min.z),
+		(aabb.min.x - segment.origin.x) /segment.diff.x,
+		(aabb.min.y - segment.origin.y) / segment.diff.y,
+		(aabb.min.z - segment.origin.z) / segment.diff.z,
 	};
 
 	Vector3 max = {
-		(aabb.max.x - segment.origin.x) / (aabb.max.x - aabb.min.x),
-		(aabb.max.y - segment.origin.y) / (aabb.max.y - aabb.min.y),
-		(aabb.max.z - segment.origin.z) / (aabb.max.z - aabb.min.z),
+		(aabb.max.x - segment.origin.x) / segment.diff.x,
+		(aabb.max.y - segment.origin.y) / segment.diff.y,
+		(aabb.max.z - segment.origin.z) / segment.diff.z
 	};
 
 	Vector3 tNear;

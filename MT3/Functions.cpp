@@ -107,6 +107,16 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 	return result;
 }
 
+bool IsCollision(const AABB& aabb1, const AABB& aabb2) {
+	if ((a.min.x <= b.max.x && a.max.x >= b.min.x)
+		&& (a.min.y <= b.max.y && a.max.y >= b.min.y)
+		&& (a.min.z <= b.max.z && a.max.z >= b.min.z)) {
+
+		return true;
+	}
+	return false;
+}
+
 void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix) {
 	const float kGridHalfWidth = 2.0f;
 	// Gridの半分の幅
@@ -162,87 +172,9 @@ void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMa
 	}
 }
 
-void DrawSegment(const Segment& segment, const Matrix4x4& viewProjectionMatrix,
-	const Matrix4x4& viewportMatrix, uint32_t color) {
-	Vector3 start = Transform(Transform(segment.origin, viewProjectionMatrix), viewportMatrix);
-	Vector3 end = Transform(Transform(segment.origin + segment.diff, viewProjectionMatrix), viewportMatrix);
-	Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), color);
+void DrawAABB(const AABB& aabb, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
+
 }
-
-void DrawTriangle(const Triangle& triangle, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
-	Vector3 vertices[3];
-	vertices[0] = Transform(Transform(triangle.vertices[0], viewProjectionMatrix), viewportMatrix);
-	vertices[1] = Transform(Transform(triangle.vertices[1], viewProjectionMatrix), viewportMatrix);
-	vertices[2] = Transform(Transform(triangle.vertices[2], viewProjectionMatrix), viewportMatrix);
-	Novice::DrawTriangle(int(vertices[0].x), int(vertices[0].y),
-		int(vertices[1].x), int(vertices[1].y),
-		int(vertices[2].x), int(vertices[2].y),
-		color,
-		kFillModeWireFrame);
-}
-
-bool IsCollision(const Segment& segment, const Triangle& triangle) {
-
-	Vector3 v1 = triangle.vertices[1] - triangle.vertices[0];
-	Vector3 v2 = triangle.vertices[2] - triangle.vertices[0];
-
-	Vector3 n = Normalize(Cross(v1, v2));
-
-	float d = Dot(triangle.vertices[0], n);
-
-	Vector3 b = segment.diff;
-
-	float dot = Dot(b, n);
-
-	if (std::fabs(dot) < 0.0001f) {
-		return false;
-	}
-
-	float t = (d - Dot(segment.origin, n)) / dot;
-
-	if (t < 0.0f || t > 1.0f) {
-		return false;
-	}
-
-	Vector3 p = segment.origin + b * t;
-
-	Vector3 cross01 = Cross(
-		triangle.vertices[1] - triangle.vertices[0],
-		p - triangle.vertices[0]);
-
-	Vector3 cross12 = Cross(
-		triangle.vertices[2] - triangle.vertices[1],
-		p - triangle.vertices[1]);
-
-	Vector3 cross20 = Cross(
-		triangle.vertices[0] - triangle.vertices[2],
-		p - triangle.vertices[2]);
-
-	if (Dot(cross01, n) >= 0.0f &&
-		Dot(cross12, n) >= 0.0f &&
-		Dot(cross20, n) >= 0.0f) {
-		return true;
-	}
-
-	return false;
-}// ===================================================================
-// 直線
-// ===================================================================
-bool IsCollision(const Line& line, const Triangle& triangle) {
-
-	line;
-	triangle;
-	return true;
-}
-// ===================================================================
-// 半直線
-// ===================================================================
-bool IsCollision(const Ray& ray, const Triangle& triangle) {
-	ray;
-	triangle;
-	return false;
-}
-
 
 Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
 	Vector3 result{};

@@ -107,11 +107,12 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 	return result;
 }
 
-bool IsCollision(const AABB& aabb1, const AABB& aabb2) {
-	if ((aabb1.min.x <= aabb2.max.x && aabb1.max.x >= aabb2.min.x)
-		&& (aabb1.min.y <= aabb2.max.y && aabb1.max.y >= aabb2.min.y)
-		&& (aabb1.min.z <= aabb2.max.z && aabb1.max.z >= aabb2.min.z)) {
-
+bool IsCollision(const AABB& aabb, const Sphere& sphere) {
+	Vector3 closestPoint{ std::clamp(sphere.center.x,aabb.min.x,aabb.max.x),
+						 std::clamp(sphere.center.y,aabb.min.y,aabb.max.y),
+						 std::clamp(sphere.center.z,aabb.min.z,aabb.max.z) };
+	float distance = Length(closestPoint - sphere.center);
+	if (distance <= sphere.radius) {
 		return true;
 	}
 	return false;
@@ -187,21 +188,67 @@ void DrawAABB(const AABB& aabb, const Matrix4x4& viewProjectionMatrix, const Mat
 	for (int i = 0;i < 8;++i) {
 		screenVertices[i] = Transform(Transform(vertices[i], viewProjectionMatrix), viewportMatrix);
 	}
-	
-	Novice::DrawLine(int(screenVertices[0].x), int(screenVertices[0].y),int(screenVertices[1].x), int(screenVertices[1].y),color);
-	Novice::DrawLine(int(screenVertices[1].x), int(screenVertices[1].y),int(screenVertices[3].x), int(screenVertices[3].y),color);
-	Novice::DrawLine(int(screenVertices[3].x), int(screenVertices[3].y),int(screenVertices[2].x), int(screenVertices[2].y),color);
-	Novice::DrawLine(int(screenVertices[2].x), int(screenVertices[2].y),int(screenVertices[0].x), int(screenVertices[0].y),color);
-	Novice::DrawLine(int(screenVertices[4].x), int(screenVertices[4].y),int(screenVertices[5].x), int(screenVertices[5].y),color);
-	Novice::DrawLine(int(screenVertices[5].x), int(screenVertices[5].y),int(screenVertices[7].x), int(screenVertices[7].y),color);
-	Novice::DrawLine(int(screenVertices[7].x), int(screenVertices[7].y),int(screenVertices[6].x), int(screenVertices[6].y),color);
-	Novice::DrawLine(int(screenVertices[6].x), int(screenVertices[6].y),int(screenVertices[4].x), int(screenVertices[4].y),color);
-	
-	Novice::DrawLine(int(screenVertices[0].x), int(screenVertices[0].y),int(screenVertices[4].x), int(screenVertices[4].y),color);
-	Novice::DrawLine(int(screenVertices[1].x), int(screenVertices[1].y),int(screenVertices[5].x), int(screenVertices[5].y),color);
-	Novice::DrawLine(int(screenVertices[2].x), int(screenVertices[2].y),int(screenVertices[6].x), int(screenVertices[6].y),color);
-	Novice::DrawLine(int(screenVertices[3].x), int(screenVertices[3].y),int(screenVertices[7].x), int(screenVertices[7].y),color);
 
+	Novice::DrawLine(int(screenVertices[0].x), int(screenVertices[0].y), int(screenVertices[1].x), int(screenVertices[1].y), color);
+	Novice::DrawLine(int(screenVertices[1].x), int(screenVertices[1].y), int(screenVertices[3].x), int(screenVertices[3].y), color);
+	Novice::DrawLine(int(screenVertices[3].x), int(screenVertices[3].y), int(screenVertices[2].x), int(screenVertices[2].y), color);
+	Novice::DrawLine(int(screenVertices[2].x), int(screenVertices[2].y), int(screenVertices[0].x), int(screenVertices[0].y), color);
+	Novice::DrawLine(int(screenVertices[4].x), int(screenVertices[4].y), int(screenVertices[5].x), int(screenVertices[5].y), color);
+	Novice::DrawLine(int(screenVertices[5].x), int(screenVertices[5].y), int(screenVertices[7].x), int(screenVertices[7].y), color);
+	Novice::DrawLine(int(screenVertices[7].x), int(screenVertices[7].y), int(screenVertices[6].x), int(screenVertices[6].y), color);
+	Novice::DrawLine(int(screenVertices[6].x), int(screenVertices[6].y), int(screenVertices[4].x), int(screenVertices[4].y), color);
+
+	Novice::DrawLine(int(screenVertices[0].x), int(screenVertices[0].y), int(screenVertices[4].x), int(screenVertices[4].y), color);
+	Novice::DrawLine(int(screenVertices[1].x), int(screenVertices[1].y), int(screenVertices[5].x), int(screenVertices[5].y), color);
+	Novice::DrawLine(int(screenVertices[2].x), int(screenVertices[2].y), int(screenVertices[6].x), int(screenVertices[6].y), color);
+	Novice::DrawLine(int(screenVertices[3].x), int(screenVertices[3].y), int(screenVertices[7].x), int(screenVertices[7].y), color);
+
+}
+
+void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
+	const uint32_t kSubdivision = 10;
+
+	float pi = std::numbers::pi_v<float>;
+
+	const float kLonEvery = (2.0f * pi) / kSubdivision;
+
+	const float kLatEvery = pi / kSubdivision;
+
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
+
+		float lat = -pi / 2.0f + kLatEvery * latIndex; // 現在の緯度
+		float cosLat = std::cos(lat);
+		float sinLat = std::sin(lat);
+		float cosLatNext = std::cos(lat + kLatEvery);
+		float sinLatNext = std::sin(lat + kLatEvery);
+
+		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
+			float lon = lonIndex * kLonEvery; // 現在の経度
+
+			float cosLon = std::cos(lon);
+			float sinLon = std::sin(lon);
+			float cosLonNext = std::cos(lon + kLonEvery);
+			float sinLonNext = std::sin(lon + kLonEvery);
+
+			// world座標系でのa, b, cを求める
+			Vector3 a, b, c;
+			a = { cosLat * cosLon, sinLat, cosLat * sinLon };
+			b = { cosLatNext * cosLon, sinLatNext, cosLatNext * sinLon };
+			c = { cosLat * cosLonNext, sinLat, cosLat * sinLonNext };
+
+			a = { a.x * sphere.radius + sphere.center.x, a.y * sphere.radius + sphere.center.y, a.z * sphere.radius + sphere.center.z };
+			b = { b.x * sphere.radius + sphere.center.x, b.y * sphere.radius + sphere.center.y, b.z * sphere.radius + sphere.center.z };
+			c = { c.x * sphere.radius + sphere.center.x, c.y * sphere.radius + sphere.center.y, c.z * sphere.radius + sphere.center.z };
+
+			// a, b, cをScreen座標系まで変換...
+			Vector3 screenA = Transform(Transform(a, viewProjectionMatrix), viewportMatrix);
+			Vector3 screenB = Transform(Transform(b, viewProjectionMatrix), viewportMatrix);
+			Vector3 screenC = Transform(Transform(c, viewProjectionMatrix), viewportMatrix);
+			// ab, bcで線を引く
+			Novice::DrawLine(int(screenA.x), int(screenA.y), int(screenB.x), int(screenB.y), color);
+			Novice::DrawLine(int(screenA.x), int(screenA.y), int(screenC.x), int(screenC.y), color);
+		}
+	}
 }
 
 Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {

@@ -4,6 +4,7 @@
 #include "Functions.h"
 #include "Matrix4x4.h"
 #include "AABB.h"
+#include "Sphere.h"
 #include <algorithm>
 
 const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_02_05";
@@ -25,15 +26,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
 
-	AABB aabb1{
+	AABB aabb{
 		.min{-0.5f,-0.5f,-0.5f},
 		.max{0.0f,0.0f,0.0f}
 	};
 
-	AABB aabb2{
-		.min{0.2f,0.2f,0.2f},
-		.max{ 1.0f,1.0f,1.0f}
-	};
+	Sphere sphere;
+	sphere.radius = 1.0f;
+	sphere.center = Vector3{ 2.0f,2.0f,2.0f };
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -52,27 +52,22 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		ImGui::Begin("Debug");
 
-		ImGui::DragFloat3("aabb1.min",
-			&aabb1.min.x, 0.01f);
-		ImGui::DragFloat3("aabb1.max",
-			&aabb1.max.x, 0.01f);
-		ImGui::DragFloat3("aabb2.min",
-			&aabb2.min.x, 0.01f);
-		ImGui::DragFloat3("aabb2.max",
-			&aabb2.max.x, 0.01f);
-		aabb1.min.x = (std::min)(aabb1.min.x, aabb1.max.x);
-		aabb1.max.x = (std::max)(aabb1.min.x, aabb1.max.x);
-		aabb1.min.y = (std::min)(aabb1.min.y, aabb1.max.y);
-		aabb1.max.y = (std::max)(aabb1.min.y, aabb1.max.y);
-		aabb1.min.z = (std::min)(aabb1.min.z, aabb1.max.z);
-		aabb1.max.z = (std::max)(aabb1.min.z, aabb1.max.z);
+		ImGui::DragFloat3("sphere.min",
+			&sphere.center.x, 0.01f);
+		ImGui::DragFloat("sphere.radius",
+			&sphere.radius, 0.01f,0.01f,3.0f);
 
-		aabb2.min.x = (std::min)(aabb2.min.x, aabb2.max.x);
-		aabb2.max.x = (std::max)(aabb2.min.x, aabb2.max.x);
-		aabb2.min.y = (std::min)(aabb2.min.y, aabb2.max.y);
-		aabb2.max.y = (std::max)(aabb2.min.y, aabb2.max.y);
-		aabb2.min.z = (std::min)(aabb2.min.z, aabb2.max.z);
-		aabb2.max.z = (std::max)(aabb2.min.z, aabb2.max.z);
+		ImGui::DragFloat3("aabb.min",
+			&aabb.min.x, 0.01f);
+		ImGui::DragFloat3("aabb.max",
+			&aabb.max.x, 0.01f);
+		
+		aabb.min.x = (std::min)(aabb.min.x, aabb.max.x);
+		aabb.max.x = (std::max)(aabb.min.x, aabb.max.x);
+		aabb.min.y = (std::min)(aabb.min.y, aabb.max.y);
+		aabb.max.y = (std::max)(aabb.min.y, aabb.max.y);
+		aabb.min.z = (std::min)(aabb.min.z, aabb.max.z);
+		aabb.max.z = (std::max)(aabb.min.z, aabb.max.z);
 		ImGui::End();
 
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
@@ -89,11 +84,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
-		DrawAABB(aabb1, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
-		if (IsCollision(aabb1, aabb2)) {
-			DrawAABB(aabb2, viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
+		DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
+		if (IsCollision(aabb, sphere)) {
+			DrawAABB(aabb, viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
 		} else {
-			DrawAABB(aabb2, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
+			DrawAABB(aabb, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
 		}
 
 		///

@@ -109,7 +109,9 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 
 bool IsCollision(const AABB& aabb, const Segment& segment) {
 	
-	
+	Vector3 tmin = {
+		aabb.min.x-segment.origin.x
+	}
 	return false;
 }
 

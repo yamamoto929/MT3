@@ -4,10 +4,9 @@
 #include "Functions.h"
 #include "Matrix4x4.h"
 #include "AABB.h"
-#include "Sphere.h"
 #include <algorithm>
 
-const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_02_06";
+const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_02_07";
 const int kWindowWidth = 1280;
 const int kWindowHeight = 720;
 void MoveCamera(char keys[], Vector3& rotate, Vector3& translate);

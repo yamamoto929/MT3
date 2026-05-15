@@ -4,7 +4,7 @@
 #include "Functions.h"
 #include "Matrix4x4.h"
 
-const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_02_00";
+const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_02_05";
 const int kWindowWidth = 1280;
 const int kWindowHeight = 720;
 void MoveCamera(char keys[], Vector3& rotate, Vector3& translate);
@@ -23,14 +23,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
 
-	Segment segment;
-	segment.diff = Vector3{ 0.0f,0.5f,0.0f };
-	segment.origin = Vector3{ 0.0f,0.5f,0.0f };
-
-	Triangle triangle{};
-	triangle.vertices[0] = Vector3{-1.0f,0.0f,0.0f};
-	triangle.vertices[1] = Vector3{0.0f,1.0f,0.0f};
-	triangle.vertices[2] = Vector3{1.0f,0.0f,0.0f};
+	
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -68,7 +61,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
-		DrawTriangle(triangle, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
+		
 		if (IsCollision(segment, triangle)) {
 			DrawSegment(segment, viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
 		} else {

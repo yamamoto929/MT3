@@ -7,11 +7,10 @@
 #include "Line.h"
 #include <algorithm>
 
-const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_02_07";
+const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_02_08_EX";
 const int kWindowWidth = 1280;
 const int kWindowHeight = 720;
 void MoveCamera(char keys[], Vector3& rotate, Vector3& translate);
-
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {

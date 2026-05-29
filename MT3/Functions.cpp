@@ -5,8 +5,8 @@
 #include <numbers>
 #include <cmath>
 #include <cassert>
+#include "AABB.h"
 #include "Matrix4x4.h"
-#include "Line.h"
 
 // 透視投影行列
 Matrix4x4 MakePerspectiveFovMatrix(float fovy, float aspectRatio, float nearClip, float farClip) {
@@ -108,38 +108,40 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 	return result;
 }
 
-bool IsCollision(const AABB& aabb, const Segment& segment) {
-	
-	Vector3 min = {
-		(aabb.min.x - segment.origin.x) /segment.diff.x,
-		(aabb.min.y - segment.origin.y) / segment.diff.y,
-		(aabb.min.z - segment.origin.z) / segment.diff.z,
+bool IsCollision(const OBB& obb, const Sphere& sphere) {
+	Matrix4x4 obbWorldMatrix = { {
+		{obb.orientations[0].x,obb.orientations[0].y,obb.orientations[0].z,0.0f},
+		{obb.orientations[1].x,obb.orientations[1].y,obb.orientations[1].z,0.0f},
+		{obb.orientations[2].x,obb.orientations[2].y,obb.orientations[2].z,0.0f},
+		{obb.center.x,         obb.center.y,         obb.center.z,         1.0f}
+	} };
+
+	Matrix4x4 obbWorldMatrixInverse = Inverse(obbWorldMatrix);
+	Vector3 centerInOBBLocalSpace = Transform(sphere.center, obbWorldMatrixInverse);
+	AABB aabbOBBLocal{};
+	aabbOBBLocal.min = {
+		-obb.size.x,
+		-obb.size.y,
+		-obb.size.z,
+	};
+	aabbOBBLocal.max = obb.size;
+	Sphere sphereOBBLocal{
+		sphere.radius,
+		centerInOBBLocalSpace
 	};
 
-	Vector3 max = {
-		(aabb.max.x - segment.origin.x) / segment.diff.x,
-		(aabb.max.y - segment.origin.y) / segment.diff.y,
-		(aabb.max.z - segment.origin.z) / segment.diff.z
-	};
+	if (IsCollision(aabbOBBLocal, sphereOBBLocal)) { return true; }
+	return false;
+}
 
-	Vector3 tNear;
-	tNear.x = std::min(min.x,max.x);
-	tNear.y = std::min(min.y, max.y);
-	tNear.z = std::min(min.z, max.z);
-	
-
-	Vector3 tFar;
-	tFar.x = std::max(min.x, max.x);
-	tFar.y = std::max(min.y, max.y);
-	tFar.z = std::max(min.z, max.z);
-
-	float tmin = std::max(std::max(tNear.x, tNear.y), tNear.z);
-	float tmax = std::min(std::min(tFar.x, tFar.y), tFar.z);
-
-	if (tmin <= tmax) {
+bool IsCollision(const AABB& aabb, const Sphere& sphere) {
+	Vector3 closestPoint{ std::clamp(sphere.center.x,aabb.min.x,aabb.max.x),
+						 std::clamp(sphere.center.y,aabb.min.y,aabb.max.y),
+						 std::clamp(sphere.center.z,aabb.min.z,aabb.max.z) };
+	float distance = Length(closestPoint - sphere.center);
+	if (distance <= sphere.radius) {
 		return true;
 	}
-
 	return false;
 }
 
@@ -198,16 +200,20 @@ void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMa
 	}
 }
 
-void DrawAABB(const AABB& aabb, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
+void DrawOBB(const OBB& obb, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
+	Vector3 extX = { obb.size.x * obb.orientations[0].x,obb.size.y * obb.orientations[0].y, obb.size.z * obb.orientations[0].z, };
+	Vector3 extY = { obb.size.x * obb.orientations[1].x,obb.size.y * obb.orientations[1].y, obb.size.z * obb.orientations[1].z, };
+	Vector3 extZ = { obb.size.x * obb.orientations[2].x,obb.size.y * obb.orientations[2].y, obb.size.z * obb.orientations[2].z, };
+
 	Vector3 vertices[8];
-	vertices[0] = aabb.min;
-	vertices[1] = Vector3{ aabb.max.x,aabb.min.y,aabb.min.z };
-	vertices[2] = Vector3{ aabb.min.x,aabb.max.y,aabb.min.z };
-	vertices[3] = Vector3{ aabb.max.x,aabb.max.y,aabb.min.z };
-	vertices[4] = Vector3{ aabb.min.x,aabb.min.y,aabb.max.z };
-	vertices[5] = Vector3{ aabb.max.x,aabb.min.y,aabb.max.z };
-	vertices[6] = Vector3{ aabb.min.x,aabb.max.y,aabb.max.z };
-	vertices[7] = aabb.max;
+	vertices[0] = obb.center - extX - extY - extZ;
+	vertices[1] = obb.center + extX - extY - extZ;
+	vertices[2] = obb.center - extX - extY + extZ;
+	vertices[3] = obb.center + extX - extY + extZ;
+	vertices[4] = obb.center - extX + extY - extZ;
+	vertices[5] = obb.center + extX + extY - extZ;
+	vertices[6] = obb.center - extX + extY + extZ;
+	vertices[7] = obb.center + extX + extY + extZ;
 
 	Vector3 screenVertices[8];
 	for (int i = 0;i < 8;++i) {
@@ -227,14 +233,52 @@ void DrawAABB(const AABB& aabb, const Matrix4x4& viewProjectionMatrix, const Mat
 	Novice::DrawLine(int(screenVertices[1].x), int(screenVertices[1].y), int(screenVertices[5].x), int(screenVertices[5].y), color);
 	Novice::DrawLine(int(screenVertices[2].x), int(screenVertices[2].y), int(screenVertices[6].x), int(screenVertices[6].y), color);
 	Novice::DrawLine(int(screenVertices[3].x), int(screenVertices[3].y), int(screenVertices[7].x), int(screenVertices[7].y), color);
-
 }
 
-void DrawSegment(const Segment& segment, const Matrix4x4& viewProjectionMatrix,
-	const Matrix4x4& viewportMatrix, uint32_t color) {
-	Vector3 start = Transform(Transform(segment.origin, viewProjectionMatrix), viewportMatrix);
-	Vector3 end = Transform(Transform(segment.origin + segment.diff, viewProjectionMatrix), viewportMatrix);
-	Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), color);
+void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
+	const uint32_t kSubdivision = 10;
+
+	float pi = std::numbers::pi_v<float>;
+
+	const float kLonEvery = (2.0f * pi) / kSubdivision;
+
+	const float kLatEvery = pi / kSubdivision;
+
+	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
+
+		float lat = -pi / 2.0f + kLatEvery * latIndex; // 現在の緯度
+		float cosLat = std::cos(lat);
+		float sinLat = std::sin(lat);
+		float cosLatNext = std::cos(lat + kLatEvery);
+		float sinLatNext = std::sin(lat + kLatEvery);
+
+		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
+			float lon = lonIndex * kLonEvery; // 現在の経度
+
+			float cosLon = std::cos(lon);
+			float sinLon = std::sin(lon);
+			float cosLonNext = std::cos(lon + kLonEvery);
+			float sinLonNext = std::sin(lon + kLonEvery);
+
+			// world座標系でのa, b, cを求める
+			Vector3 a, b, c;
+			a = { cosLat * cosLon, sinLat, cosLat * sinLon };
+			b = { cosLatNext * cosLon, sinLatNext, cosLatNext * sinLon };
+			c = { cosLat * cosLonNext, sinLat, cosLat * sinLonNext };
+
+			a = { a.x * sphere.radius + sphere.center.x, a.y * sphere.radius + sphere.center.y, a.z * sphere.radius + sphere.center.z };
+			b = { b.x * sphere.radius + sphere.center.x, b.y * sphere.radius + sphere.center.y, b.z * sphere.radius + sphere.center.z };
+			c = { c.x * sphere.radius + sphere.center.x, c.y * sphere.radius + sphere.center.y, c.z * sphere.radius + sphere.center.z };
+
+			// a, b, cをScreen座標系まで変換...
+			Vector3 screenA = Transform(Transform(a, viewProjectionMatrix), viewportMatrix);
+			Vector3 screenB = Transform(Transform(b, viewProjectionMatrix), viewportMatrix);
+			Vector3 screenC = Transform(Transform(c, viewProjectionMatrix), viewportMatrix);
+			// ab, bcで線を引く
+			Novice::DrawLine(int(screenA.x), int(screenA.y), int(screenB.x), int(screenB.y), color);
+			Novice::DrawLine(int(screenA.x), int(screenA.y), int(screenC.x), int(screenC.y), color);
+		}
+	}
 }
 
 Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
@@ -279,3 +323,32 @@ Vector3 Perpendicular(const Vector3& vector) {
 	return Vector3{ 0.0f,-vector.z,vector.y };
 }
 
+Vector3 MultiplyVec3Mat4x4(const Vector3& v, const Matrix4x4& m) {
+	Matrix4x4 vMat{};
+	vMat.m[0][0] = v.x;
+	vMat.m[1][0] = v.y;
+	vMat.m[2][0] = v.z;
+	vMat.m[3][0] = 1.0f;
+
+	Matrix4x4 resultMat = Multiply(vMat, m);
+
+	assert(resultMat.m[3][0] != 0.0f);
+	Vector3 resultVec3 = { resultMat.m[0][0] / resultMat.m[3][0],
+							resultMat.m[1][0] / resultMat.m[3][0],
+							resultMat.m[2][0] / resultMat.m[3][0], };
+	return resultVec3;
+}
+
+void MakeOBBOrientation(const Vector3& rotate, OBB& obb) {
+	Matrix4x4 rotationMatrix = Multiply(Multiply(MakeRotateXMatrix(rotate.x), MakeRotateYMatrix(rotate.y)), MakeRotateZMatrix(rotate.z));
+
+	obb.orientations[0].x = rotationMatrix.m[0][0];
+	obb.orientations[0].y = rotationMatrix.m[0][1];
+	obb.orientations[0].z = rotationMatrix.m[0][2];
+	obb.orientations[1].x = rotationMatrix.m[1][0];
+	obb.orientations[1].y = rotationMatrix.m[1][1];
+	obb.orientations[1].z = rotationMatrix.m[1][2];
+	obb.orientations[2].x = rotationMatrix.m[2][0];
+	obb.orientations[2].y = rotationMatrix.m[2][1];
+	obb.orientations[2].z = rotationMatrix.m[2][2];
+}

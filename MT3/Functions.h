@@ -3,11 +3,14 @@
 #include "Matrix4x4.h"
 #include "AABB.h"
 #include "OBB.h"
+#include "Line.h"
 #include <cstdint>
 const int kColumnWidth = 20;
 const int kRowHeight = 60;
 
 void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix);
+void DrawSegment(const Segment& segment, const Matrix4x4& viewProjectionMatrix,
+	const Matrix4x4& viewportMatrix, uint32_t color);
 void DrawOBB(const OBB& obb, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color);
 Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix);
 
@@ -21,8 +24,8 @@ Matrix4x4 MakeRotateXMatrix(float radian);
 Matrix4x4 MakeRotateYMatrix(float radian);
 Matrix4x4 MakeRotateZMatrix(float radian);
 Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate);
-//bool IsCollision(const OBB& obb, const Sphere& sphere);
-//bool IsCollision(const AABB& aabb, const Sphere& sphere);
+bool IsCollision(const AABB& aabb, const Segment& segment);
+bool IsCollision(const OBB& obb, const Segment& segment);
 float Cot(float a);
 Vector3 Perpendicular(const Vector3& vector);
 Vector3 MultiplyVec3Mat4x4(const Vector3& v, const Matrix4x4& m);

@@ -7,7 +7,7 @@
 #include "Matrix4x4.h"
 #include <algorithm>
 
-const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_02_08_EX";
+const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_02_09_EX";
 const int kWindowWidth = 1280;
 const int kWindowHeight = 720;
 void MoveCamera(char keys[], Vector3& rotate, Vector3& translate);
@@ -30,8 +30,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 						{0.0f,1.0f,0.0f}},
 		.size{0.5f,0.5f,0.5f}
 	};
-	
 
+	Segment segment{
+		.origin{-0.8f, -0.3f, 0.0f},
+		.diff{0.5f, 0.5f, 0.5f}
+	};
 	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
 
@@ -69,7 +72,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			&obb.orientations[2].x, 0.01f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_NoInput);
 
 		ImGui::DragFloat3("obb.size",
-			&obb.size.x, 0.01f,0.01f,2.0f);
+			&obb.size.x, 0.01f, 0.01f, 2.0f);
+
+		ImGui::DragFloat3("segment.origin",
+			&segment.origin.x, 0.01f);
+		ImGui::DragFloat3("segment.diff",
+			&segment.diff.x, 0.01f);
+		ImGui::End();
+
 
 		ImGui::End();
 
@@ -87,8 +97,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
-		
-		if () {
+		DrawSegment(segment, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
+		if (IsCollision(obb,segment)) {
 			DrawOBB(obb, viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
 		} else {
 			DrawOBB(obb, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);

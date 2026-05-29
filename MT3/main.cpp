@@ -30,11 +30,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 						{0.0f,1.0f,0.0f}},
 		.size{0.5f,0.5f,0.5f}
 	};
-	Sphere sphere{
-		.radius{0.5f},
-		.center{0.0f,0.0f,0.0f}
-	};
-
+	
 
 	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
@@ -75,11 +71,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		ImGui::DragFloat3("obb.size",
 			&obb.size.x, 0.01f,0.01f,2.0f);
 
-		ImGui::DragFloat3("sphere.center",
-			&sphere.center.x, 0.01f);
-		ImGui::DragFloat("sphere.radius",
-			&sphere.radius, 0.01f);
-
 		ImGui::End();
 
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
@@ -96,8 +87,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
-		DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
-		if (IsCollision(obb, sphere)) {
+		
+		if () {
 			DrawOBB(obb, viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
 		} else {
 			DrawOBB(obb, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);

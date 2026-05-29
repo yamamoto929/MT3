@@ -127,6 +127,39 @@ bool IsCollision(const AABB& aabb, const Segment& segment) {
 	tNear.y = std::min(min.y, max.y);
 	tNear.z = std::min(min.z, max.z);
 
+	Vector3 tFar;
+	tFar.x = std::max(min.x, max.x);
+	tFar.y = std::max(min.y, max.y);
+	tFar.z = std::max(min.z, max.z);
+
+	float tmin = std::max(std::max(tNear.x, tNear.y), tNear.z);
+	float tmax = std::min(std::min(tFar.x, tFar.y), tFar.z);
+
+	if (tmin <= 1.0f && tmax >= 0.0f && tmin <= tmax) {
+		return true;
+	}
+
+	return false;
+}
+
+bool IsCollision(const AABB& aabb, const Line& line) {
+
+	Vector3 min = {
+		(aabb.min.x - line.origin.x) / line.diff.x,
+		(aabb.min.y - line.origin.y) / line.diff.y,
+		(aabb.min.z - line.origin.z) / line.diff.z,
+	};
+
+	Vector3 max = {
+		(aabb.max.x - line.origin.x) / line.diff.x,
+		(aabb.max.y - line.origin.y) / line.diff.y,
+		(aabb.max.z - line.origin.z) / line.diff.z
+	};
+
+	Vector3 tNear;
+	tNear.x = std::min(min.x, max.x);
+	tNear.y = std::min(min.y, max.y);
+	tNear.z = std::min(min.z, max.z);
 
 	Vector3 tFar;
 	tFar.x = std::max(min.x, max.x);
@@ -137,6 +170,40 @@ bool IsCollision(const AABB& aabb, const Segment& segment) {
 	float tmax = std::min(std::min(tFar.x, tFar.y), tFar.z);
 
 	if (tmin <= tmax) {
+		return true;
+	}
+
+	return false;
+}
+
+bool IsCollision(const AABB& aabb, const Ray& ray) {
+
+	Vector3 min = {
+		(aabb.min.x - ray.origin.x) / ray.diff.x,
+		(aabb.min.y - ray.origin.y) / ray.diff.y,
+		(aabb.min.z - ray.origin.z) / ray.diff.z,
+	};
+
+	Vector3 max = {
+		(aabb.max.x - ray.origin.x) / ray.diff.x,
+		(aabb.max.y - ray.origin.y) / ray.diff.y,
+		(aabb.max.z - ray.origin.z) / ray.diff.z
+	};
+
+	Vector3 tNear;
+	tNear.x = std::min(min.x, max.x);
+	tNear.y = std::min(min.y, max.y);
+	tNear.z = std::min(min.z, max.z);
+
+	Vector3 tFar;
+	tFar.x = std::max(min.x, max.x);
+	tFar.y = std::max(min.y, max.y);
+	tFar.z = std::max(min.z, max.z);
+
+	float tmin = std::max(std::max(tNear.x, tNear.y), tNear.z);
+	float tmax = std::min(std::min(tFar.x, tFar.y), tFar.z);
+
+	if (tmax >= 0.0f && tmin <= tmax) {
 		return true;
 	}
 
@@ -163,6 +230,51 @@ bool IsCollision(const OBB& obb, const Segment& segment) {
 	localSegment.origin = localOrigin;
 	localSegment.diff = localEnd - localOrigin;
 	return IsCollision(localAABB, localSegment);
+}
+
+bool IsCollision(const OBB& obb, const Line& line) {
+	Matrix4x4 obbWorldMatrix = { {
+		{obb.orientations[0].x,obb.orientations[0].y,obb.orientations[0].z,0.0f},
+		{obb.orientations[1].x,obb.orientations[1].y,obb.orientations[1].z,0.0f},
+		{obb.orientations[2].x,obb.orientations[2].y,obb.orientations[2].z,0.0f},
+		{obb.center.x,         obb.center.y,         obb.center.z,         1.0f}
+	} };
+	Matrix4x4 obbInverse = Inverse(obbWorldMatrix);
+	Vector3 localOrigin = Transform(line.origin, obbInverse);
+	Vector3 localEnd = Transform(line.origin + line.diff, obbInverse);
+
+	AABB localAABB{
+		{-obb.size.x,-obb.size.y,-obb.size.z},
+		{+obb.size.x,+obb.size.y,+obb.size.z},
+	};
+
+	Line localLine;
+	localLine.origin = localOrigin;
+	localLine.diff = localEnd - localOrigin;
+	return IsCollision(localAABB, localLine);
+}
+
+bool IsCollision(const OBB& obb, const Ray& ray) {
+	Matrix4x4 obbWorldMatrix = { {
+		{obb.orientations[0].x,obb.orientations[0].y,obb.orientations[0].z,0.0f},
+		{obb.orientations[1].x,obb.orientations[1].y,obb.orientations[1].z,0.0f},
+		{obb.orientations[2].x,obb.orientations[2].y,obb.orientations[2].z,0.0f},
+		{obb.center.x,         obb.center.y,         obb.center.z,         1.0f}
+	} };
+	Matrix4x4 obbInverse = Inverse(obbWorldMatrix);
+	Vector3 localOrigin = Transform(ray.origin, obbInverse);
+	// 方向ベクトル
+	Vector3 localDiff = Transform(ray.diff, obbInverse);
+
+	AABB localAABB{
+		{-obb.size.x,-obb.size.y,-obb.size.z},
+		{+obb.size.x,+obb.size.y,+obb.size.z},
+	};
+
+	Ray localRay;
+	localRay.origin = localOrigin;
+	localRay.diff = localDiff;
+	return IsCollision(localAABB, localRay);
 }
 
 void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix) {
@@ -255,7 +367,7 @@ void DrawOBB(const OBB& obb, const Matrix4x4& viewProjectionMatrix, const Matrix
 	Novice::DrawLine(int(screenVertices[3].x), int(screenVertices[3].y), int(screenVertices[7].x), int(screenVertices[7].y), color);
 }
 
-void DrawSegment(const Segment& segment, const Matrix4x4& viewProjectionMatrix,
+void DrawSegment(const Line& segment, const Matrix4x4& viewProjectionMatrix,
 	const Matrix4x4& viewportMatrix, uint32_t color) {
 	Vector3 start = Transform(Transform(segment.origin, viewProjectionMatrix), viewportMatrix);
 	Vector3 end = Transform(Transform(segment.origin + segment.diff, viewProjectionMatrix), viewportMatrix);

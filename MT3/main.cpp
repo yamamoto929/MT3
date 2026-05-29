@@ -31,9 +31,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		.size{0.5f,0.5f,0.5f}
 	};
 
-	Segment segment{
+	Line segment{
 		.origin{-0.8f, -0.3f, 0.0f},
-		.diff{0.5f, 0.5f, 0.5f}
+		.diff{0.5f, 0.f, 0.f}
 	};
 	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };

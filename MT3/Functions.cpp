@@ -367,7 +367,7 @@ void DrawOBB(const OBB& obb, const Matrix4x4& viewProjectionMatrix, const Matrix
 	Novice::DrawLine(int(screenVertices[3].x), int(screenVertices[3].y), int(screenVertices[7].x), int(screenVertices[7].y), color);
 }
 
-void DrawSegment(const Line& segment, const Matrix4x4& viewProjectionMatrix,
+void DrawSegment(const Segment& segment, const Matrix4x4& viewProjectionMatrix,
 	const Matrix4x4& viewportMatrix, uint32_t color) {
 	Vector3 start = Transform(Transform(segment.origin, viewProjectionMatrix), viewportMatrix);
 	Vector3 end = Transform(Transform(segment.origin + segment.diff, viewProjectionMatrix), viewportMatrix);

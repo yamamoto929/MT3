@@ -9,7 +9,7 @@ const int kColumnWidth = 20;
 const int kRowHeight = 60;
 
 void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix);
-void DrawSegment(const Line& segment, const Matrix4x4& viewProjectionMatrix,
+void DrawSegment(const Segment& segment, const Matrix4x4& viewProjectionMatrix,
 	const Matrix4x4& viewportMatrix, uint32_t color);
 void DrawOBB(const OBB& obb, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color);
 Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix);

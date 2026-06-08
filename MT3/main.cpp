@@ -31,7 +31,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		.size{0.5f,0.5f,0.5f}
 	};
 
-	Line segment{
+	Segment segment{
 		.origin{-0.8f, -0.3f, 0.0f},
 		.diff{0.5f, 0.f, 0.f}
 	};

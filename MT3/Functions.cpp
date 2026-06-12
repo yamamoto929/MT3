@@ -5,6 +5,7 @@
 #include <numbers>
 #include <cmath>
 #include <cassert>
+#include <cstdlib>
 #include "AABB.h"
 #include "Matrix4x4.h"
 
@@ -108,173 +109,92 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 	return result;
 }
 
-bool IsCollision(const AABB& aabb, const Segment& segment) {
+bool IsCollision(const OBB& obb1, const OBB& obb2) {
 
-	Vector3 min = {
-		(aabb.min.x - segment.origin.x) / segment.diff.x,
-		(aabb.min.y - segment.origin.y) / segment.diff.y,
-		(aabb.min.z - segment.origin.z) / segment.diff.z,
-	};
+	Vector3 obbAxis[15];
+	// 面法線の判定
+	obbAxis[0] = obb1.orientations[0];
+	obbAxis[1] = obb1.orientations[1];
+	obbAxis[2] = obb1.orientations[2];
+	obbAxis[3] = obb2.orientations[0];
+	obbAxis[4] = obb2.orientations[1];
+	obbAxis[5] = obb2.orientations[2];
+	// 各辺の組み合わせのクロス積
+	obbAxis[6] = Cross(obb1.orientations[0], obb2.orientations[0]);
+	obbAxis[7] = Cross(obb1.orientations[0], obb2.orientations[1]);
+	obbAxis[8] = Cross(obb1.orientations[0], obb2.orientations[2]);
+	obbAxis[9] = Cross(obb1.orientations[1], obb2.orientations[0]);
+	obbAxis[10] = Cross(obb1.orientations[1], obb2.orientations[1]);
+	obbAxis[11] = Cross(obb1.orientations[1], obb2.orientations[2]);
+	obbAxis[12] = Cross(obb1.orientations[2], obb2.orientations[0]);
+	obbAxis[13] = Cross(obb1.orientations[2], obb2.orientations[1]);
+	obbAxis[14] = Cross(obb1.orientations[2], obb2.orientations[2]);
 
-	Vector3 max = {
-		(aabb.max.x - segment.origin.x) / segment.diff.x,
-		(aabb.max.y - segment.origin.y) / segment.diff.y,
-		(aabb.max.z - segment.origin.z) / segment.diff.z
-	};
+	Vector3 ex1 = obb1.orientations[0] * obb1.size.x;
+	Vector3 ey1 = obb1.orientations[1] * obb1.size.y;
+	Vector3 ez1 = obb1.orientations[2] * obb1.size.z;
 
-	Vector3 tNear;
-	tNear.x = std::min(min.x, max.x);
-	tNear.y = std::min(min.y, max.y);
-	tNear.z = std::min(min.z, max.z);
+	Vector3 vertices1[8];
+	vertices1[0] = obb1.center - ex1 - ey1 - ez1;
+	vertices1[1] = obb1.center + ex1 - ey1 - ez1;
+	vertices1[2] = obb1.center - ex1 + ey1 - ez1;
+	vertices1[3] = obb1.center + ex1 + ey1 - ez1;
 
-	Vector3 tFar;
-	tFar.x = std::max(min.x, max.x);
-	tFar.y = std::max(min.y, max.y);
-	tFar.z = std::max(min.z, max.z);
+	vertices1[4] = obb1.center - ex1 - ey1 + ez1;
+	vertices1[5] = obb1.center + ex1 - ey1 + ez1;
+	vertices1[6] = obb1.center - ex1 + ey1 + ez1;
+	vertices1[7] = obb1.center + ex1 + ey1 + ez1;
 
-	float tmin = std::max(std::max(tNear.x, tNear.y), tNear.z);
-	float tmax = std::min(std::min(tFar.x, tFar.y), tFar.z);
+	Vector3 ex2 = obb2.orientations[0] * obb2.size.x;
+	Vector3 ey2 = obb2.orientations[1] * obb2.size.y;
+	Vector3 ez2 = obb2.orientations[2] * obb2.size.z;
 
-	if (tmin <= 1.0f && tmax >= 0.0f && tmin <= tmax) {
-		return true;
+	Vector3 vertices2[8];
+	vertices2[0] = obb2.center - ex2 - ey2 - ez2;
+	vertices2[1] = obb2.center + ex2 - ey2 - ez2;
+	vertices2[2] = obb2.center - ex2 + ey2 - ez2;
+	vertices2[3] = obb2.center + ex2 + ey2 - ez2;
+
+	vertices2[4] = obb2.center - ex2 - ey2 + ez2;
+	vertices2[5] = obb2.center + ex2 - ey2 + ez2;
+	vertices2[6] = obb2.center - ex2 + ey2 + ez2;
+	vertices2[7] = obb2.center + ex2 + ey2 + ez2;
+
+	for (int i = 0; i < 15; i++) {
+		float min1;
+		float min2;
+		float max1;
+		float max2;
+
+		float dotVertices1[8];
+		float dotVertices2[8];
+		for (int j = 0; j < 8; j++) {
+			dotVertices1[j] = Dot(vertices1[j], obbAxis[i]);
+			dotVertices2[j] = Dot(vertices2[j], obbAxis[i]);
+		}
+		min1 = dotVertices1[0];
+		min2 = dotVertices2[0];
+		max1 = dotVertices1[0];
+		max2 = dotVertices2[0];
+		for (int j = 0; j < 7; j++) {
+			min1 = (std::min)(min1, dotVertices1[j + 1]);
+			max1 = (std::max)(max1, dotVertices1[j + 1]);
+			min2 = (std::min)(min2, dotVertices2[j + 1]);
+			max2 = (std::max)(max2, dotVertices2[j + 1]);
+		}
+
+		float L1 = max1 - min1;
+		float L2 = max2 - min2;
+
+		float sumSpan = L1 + L2;
+		float longSpan = (std::max)(max1, max2) - (std::min)(min1, min2);
+
+		if (sumSpan < longSpan) {
+			return false;
+		}
 	}
 
-	return false;
-}
-
-bool IsCollision(const AABB& aabb, const Line& line) {
-
-	Vector3 min = {
-		(aabb.min.x - line.origin.x) / line.diff.x,
-		(aabb.min.y - line.origin.y) / line.diff.y,
-		(aabb.min.z - line.origin.z) / line.diff.z,
-	};
-
-	Vector3 max = {
-		(aabb.max.x - line.origin.x) / line.diff.x,
-		(aabb.max.y - line.origin.y) / line.diff.y,
-		(aabb.max.z - line.origin.z) / line.diff.z
-	};
-
-	Vector3 tNear;
-	tNear.x = std::min(min.x, max.x);
-	tNear.y = std::min(min.y, max.y);
-	tNear.z = std::min(min.z, max.z);
-
-	Vector3 tFar;
-	tFar.x = std::max(min.x, max.x);
-	tFar.y = std::max(min.y, max.y);
-	tFar.z = std::max(min.z, max.z);
-
-	float tmin = std::max(std::max(tNear.x, tNear.y), tNear.z);
-	float tmax = std::min(std::min(tFar.x, tFar.y), tFar.z);
-
-	if (tmin <= tmax) {
-		return true;
-	}
-
-	return false;
-}
-
-bool IsCollision(const AABB& aabb, const Ray& ray) {
-
-	Vector3 min = {
-		(aabb.min.x - ray.origin.x) / ray.diff.x,
-		(aabb.min.y - ray.origin.y) / ray.diff.y,
-		(aabb.min.z - ray.origin.z) / ray.diff.z,
-	};
-
-	Vector3 max = {
-		(aabb.max.x - ray.origin.x) / ray.diff.x,
-		(aabb.max.y - ray.origin.y) / ray.diff.y,
-		(aabb.max.z - ray.origin.z) / ray.diff.z
-	};
-
-	Vector3 tNear;
-	tNear.x = std::min(min.x, max.x);
-	tNear.y = std::min(min.y, max.y);
-	tNear.z = std::min(min.z, max.z);
-
-	Vector3 tFar;
-	tFar.x = std::max(min.x, max.x);
-	tFar.y = std::max(min.y, max.y);
-	tFar.z = std::max(min.z, max.z);
-
-	float tmin = std::max(std::max(tNear.x, tNear.y), tNear.z);
-	float tmax = std::min(std::min(tFar.x, tFar.y), tFar.z);
-
-	if (tmax >= 0.0f && tmin <= tmax) {
-		return true;
-	}
-
-	return false;
-}
-
-bool IsCollision(const OBB& obb, const Segment& segment) {
-	Matrix4x4 obbWorldMatrix = { {
-		{obb.orientations[0].x,obb.orientations[0].y,obb.orientations[0].z,0.0f},
-		{obb.orientations[1].x,obb.orientations[1].y,obb.orientations[1].z,0.0f},
-		{obb.orientations[2].x,obb.orientations[2].y,obb.orientations[2].z,0.0f},
-		{obb.center.x,         obb.center.y,         obb.center.z,         1.0f}
-	} };
-	Matrix4x4 obbInverse = Inverse(obbWorldMatrix);
-	Vector3 localOrigin = Transform(segment.origin, obbInverse);
-	Vector3 localEnd = Transform(segment.origin + segment.diff, obbInverse);
-
-	AABB localAABB{
-		{-obb.size.x,-obb.size.y,-obb.size.z},
-		{+obb.size.x,+obb.size.y,+obb.size.z},
-	};
-
-	Segment localSegment;
-	localSegment.origin = localOrigin;
-	localSegment.diff = localEnd - localOrigin;
-	return IsCollision(localAABB, localSegment);
-}
-
-bool IsCollision(const OBB& obb, const Line& line) {
-	Matrix4x4 obbWorldMatrix = { {
-		{obb.orientations[0].x,obb.orientations[0].y,obb.orientations[0].z,0.0f},
-		{obb.orientations[1].x,obb.orientations[1].y,obb.orientations[1].z,0.0f},
-		{obb.orientations[2].x,obb.orientations[2].y,obb.orientations[2].z,0.0f},
-		{obb.center.x,         obb.center.y,         obb.center.z,         1.0f}
-	} };
-	Matrix4x4 obbInverse = Inverse(obbWorldMatrix);
-	Vector3 localOrigin = Transform(line.origin, obbInverse);
-	Vector3 localEnd = Transform(line.origin + line.diff, obbInverse);
-
-	AABB localAABB{
-		{-obb.size.x,-obb.size.y,-obb.size.z},
-		{+obb.size.x,+obb.size.y,+obb.size.z},
-	};
-
-	Line localLine;
-	localLine.origin = localOrigin;
-	localLine.diff = localEnd - localOrigin;
-	return IsCollision(localAABB, localLine);
-}
-
-bool IsCollision(const OBB& obb, const Ray& ray) {
-	Matrix4x4 obbWorldMatrix = { {
-		{obb.orientations[0].x,obb.orientations[0].y,obb.orientations[0].z,0.0f},
-		{obb.orientations[1].x,obb.orientations[1].y,obb.orientations[1].z,0.0f},
-		{obb.orientations[2].x,obb.orientations[2].y,obb.orientations[2].z,0.0f},
-		{obb.center.x,         obb.center.y,         obb.center.z,         1.0f}
-	} };
-	Matrix4x4 obbInverse = Inverse(obbWorldMatrix);
-	Vector3 localOrigin = Transform(ray.origin, obbInverse);
-	// 方向ベクトル
-	Vector3 localDiff = Transform(ray.diff, obbInverse);
-
-	AABB localAABB{
-		{-obb.size.x,-obb.size.y,-obb.size.z},
-		{+obb.size.x,+obb.size.y,+obb.size.z},
-	};
-
-	Ray localRay;
-	localRay.origin = localOrigin;
-	localRay.diff = localDiff;
-	return IsCollision(localAABB, localRay);
+	return true;
 }
 
 void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix) {
@@ -348,7 +268,7 @@ void DrawOBB(const OBB& obb, const Matrix4x4& viewProjectionMatrix, const Matrix
 	vertices[7] = obb.center + extX + extY + extZ;
 
 	Vector3 screenVertices[8];
-	for (int i = 0;i < 8;++i) {
+	for (int i = 0; i < 8; ++i) {
 		screenVertices[i] = Transform(Transform(vertices[i], viewProjectionMatrix), viewportMatrix);
 	}
 

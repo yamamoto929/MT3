@@ -24,13 +24,7 @@ Matrix4x4 MakeRotateXMatrix(float radian);
 Matrix4x4 MakeRotateYMatrix(float radian);
 Matrix4x4 MakeRotateZMatrix(float radian);
 Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate);
-bool IsCollision(const AABB& aabb, const Segment& segment);
-bool IsCollision(const AABB& aabb, const Line& line);
-bool IsCollision(const AABB& aabb, const Ray& ray);
-bool IsCollision(const OBB& obb, const Segment& segment);
-bool IsCollision(const OBB& obb, const Line& line);
-bool IsCollision(const OBB& obb, const Ray& ray);
-
+bool IsCollision(const OBB& obb1, const OBB& obb2);
 float Cot(float a);
 Vector3 Perpendicular(const Vector3& vector);
 Vector3 MultiplyVec3Mat4x4(const Vector3& v, const Matrix4x4& m);

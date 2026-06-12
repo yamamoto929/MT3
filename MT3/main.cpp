@@ -22,19 +22,25 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
 
-	Vector3 rotate{ 0.0f,0.0f,0.0f };
-	OBB obb{
+	Vector3 rotate1{ 0.0f,0.0f,0.0f };
+	Vector3 rotate2{ -0.05f,-2.49f,0.15f };
+	OBB obb1{
 		.center{-1.0f,0.0f,0.0f},
 		.orientations = { {1.0f,0.0f,0.0f},
 						{0.0f,1.0f,0.0f},
-						{0.0f,1.0f,0.0f}},
-		.size{0.5f,0.5f,0.5f}
+						{0.0f,0.0f,1.0f}},
+		.size{0.83f,0.26f,0.24f}
 	};
 
-	Segment segment{
-		.origin{-0.8f, -0.3f, 0.0f},
-		.diff{0.5f, 0.f, 0.f}
+	OBB obb2{
+		.center{0.9f,0.66f,0.78f},
+		.orientations = { {1.0f,0.0f,0.0f},
+						{0.0f,1.0f,0.0f},
+						{0.0f,0.0f,1.0f}},
+		.size{0.5f,0.37f,0.5f}
 	};
+
+	
 	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
 
@@ -54,31 +60,51 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		MoveCamera(keys, cameraRotate, cameraTranslate);
 
 		ImGui::Begin("Debug");
+		//==========================================================
+		// OBB1
+		//==========================================================
+		ImGui::DragFloat3("obb1.center",
+			&obb1.center.x, 0.01f);
+		ImGui::SliderAngle("rotate1.x",
+			&rotate1.x);
+		ImGui::SliderAngle("rotate1.y",
+			&rotate1.y);
+		ImGui::SliderAngle("rotate1.z",
+			&rotate1.z);
+		MakeOBBOrientation(rotate1, obb1);
+		ImGui::DragFloat3("obb1.orientations[0]",
+			&obb1.orientations[0].x, 0.01f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_NoInput);
+		ImGui::DragFloat3("obb1.orientations[1]",
+			&obb1.orientations[1].x, 0.01f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_NoInput);
+		ImGui::DragFloat3("obb1.orientations[2]",
+			&obb1.orientations[2].x, 0.01f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_NoInput);
 
-		ImGui::DragFloat3("obb.center",
-			&obb.center.x, 0.01f);
-		ImGui::SliderAngle("rotate.x",
-			&rotate.x);
-		ImGui::SliderAngle("rotate.y",
-			&rotate.y);
-		ImGui::SliderAngle("rotate.z",
-			&rotate.z);
-		MakeOBBOrientation(rotate, obb);
-		ImGui::DragFloat3("obb.orientations[0]",
-			&obb.orientations[0].x, 0.01f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_NoInput);
-		ImGui::DragFloat3("obb.orientations[1]",
-			&obb.orientations[1].x, 0.01f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_NoInput);
-		ImGui::DragFloat3("obb.orientations[2]",
-			&obb.orientations[2].x, 0.01f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_NoInput);
+		ImGui::DragFloat3("obb1.size",
+			&obb1.size.x, 0.01f, 0.01f, 2.0f);
 
-		ImGui::DragFloat3("obb.size",
-			&obb.size.x, 0.01f, 0.01f, 2.0f);
+		//==========================================================
+		// OBB2
+		//==========================================================
+		ImGui::DragFloat3("obb2.center",
+			&obb2.center.x, 0.01f);
+		ImGui::SliderAngle("rotate2.x",
+			&rotate2.x);
+		ImGui::SliderAngle("rotate2.y",
+			&rotate2.y);
+		ImGui::SliderAngle("rotate2.z",
+			&rotate2.z);
+		MakeOBBOrientation(rotate2, obb2);
+		ImGui::DragFloat3("obb2.orientations[0]",
+			&obb2.orientations[0].x, 0.01f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_NoInput);
+		ImGui::DragFloat3("obb2.orientations[1]",
+			&obb2.orientations[1].x, 0.01f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_NoInput);
+		ImGui::DragFloat3("obb2.orientations[2]",
+			&obb2.orientations[2].x, 0.01f, -1.0f, 1.0f, "%.3f", ImGuiSliderFlags_NoInput);
 
-		ImGui::DragFloat3("segment.origin",
-			&segment.origin.x, 0.01f);
-		ImGui::DragFloat3("segment.diff",
-			&segment.diff.x, 0.01f);
+		ImGui::DragFloat3("obb2.size",
+			&obb2.size.x, 0.01f, 0.01f, 2.0f);
 		ImGui::End();
+		
 
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
 		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
@@ -94,11 +120,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
-		DrawSegment(segment, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
-		if (IsCollision(obb,segment)) {
-			DrawOBB(obb, viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
+		DrawOBB(obb2, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
+		
+		if (IsCollision(obb1,obb2)) {
+			DrawOBB(obb1, viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
 		} else {
-			DrawOBB(obb, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
+			DrawOBB(obb1, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
 		}
 
 		///

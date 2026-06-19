@@ -21,14 +21,30 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
 
-	Vector3 controlPoints[3] = {
-		{-0.8f, 0.58f, 1.0f },
-		{1.76f, 1.0f, -0.3f},
-		{0.94f, -0.7f, 2.3f },
+	Vector3 translates[3] = {
+		{0.2f, 1.0f, 0.0f},
+		{0.4f, 0.0f, 0.0f},
+		{0.3f, 0.0f, 0.0f},
+	};
+	Vector3 rotates[3] = {
+		{0.0f, 0.0f, -6.8f},
+		{0.0f, 0.0f, -1.4f},
+		{0.0f, 0.0f, 0.0f },
+	};
+	Vector3 scales[3] = {
+		{1.0f, 1.0f, 1.0f},
+		{1.0f, 1.0f, 1.0f},
+		{1.0f, 1.0f, 1.0f}
 	};
 
 	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
+
+	Sphere sphere[3];
+	for (unsigned int index = 0; index < 3; index++) {
+		sphere[index].radius = 0.05f;
+		sphere[index].center = translates[index];
+	}
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -45,10 +61,31 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		MoveCamera(keys, cameraRotate, cameraTranslate);
 
 		ImGui::Begin("Debug");
-		ImGui::DragFloat3("controlPoints[0]", &controlPoints[0].x,0.01f);
-		ImGui::DragFloat3("controlPoints[1]", &controlPoints[1].x,0.01f);
-		ImGui::DragFloat3("controlPoints[2]", &controlPoints[2].x,0.01f);
+		ImGui::DragFloat3("scales[0]", &scales[0].x, 0.01f);
+		ImGui::DragFloat3("rotates[0]", &rotates[0].x, 0.01f);
+		ImGui::DragFloat3("translates[0]", &translates[0].x, 0.01f);
+
+		ImGui::DragFloat3("scales[1]", &scales[1].x, 0.01f);
+		ImGui::DragFloat3("rotates[1]", &rotates[1].x, 0.01f);
+		ImGui::DragFloat3("translates[1]", &translates[1].x, 0.01f);
+
+		ImGui::DragFloat3("scales[2]", &scales[2].x, 0.01f);
+		ImGui::DragFloat3("rotates[2]", &rotates[2].x, 0.01f);
+		ImGui::DragFloat3("translates[2]", &translates[2].x, 0.01f);
 		ImGui::End();
+
+		Matrix4x4 sphereMatrix[3];
+
+		sphereMatrix[0] = MakeAffineMatrix(scales[0], rotates[0], translates[0]);
+		sphere[0].center = Vector3{ sphereMatrix[0].m[3][0],sphereMatrix[0].m[3][1],sphereMatrix[0].m[3][2] };
+
+		sphereMatrix[1] = Multiply(MakeAffineMatrix(scales[1], rotates[1], translates[1]),
+			sphereMatrix[0]);
+		sphere[1].center = Vector3{ sphereMatrix[1].m[3][0],sphereMatrix[1].m[3][1],sphereMatrix[1].m[3][2] };
+
+		sphereMatrix[2] = Multiply(MakeAffineMatrix(scales[2], rotates[2], translates[2]),
+			sphereMatrix[1]);
+		sphere[2].center= Vector3{ sphereMatrix[2].m[3][0],sphereMatrix[2].m[3][1],sphereMatrix[2].m[3][2] };
 
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
 		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
@@ -64,14 +101,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
-		Sphere sphere[3];
-		for (int index = 0; index < 3; ++index) {
-			sphere[index].center = controlPoints[index];
-			sphere[index].radius = 0.01f;
-			DrawSphere(sphere[index], viewProjectionMatrix, viewportMatrix, 0x000000FF);
-		}
-		DrawBezier(sphere[0].center, sphere[1].center, sphere[2].center, viewProjectionMatrix, viewportMatrix, 0x0000FFFF, 1024);
-
+		
+		DrawSphere(sphere[0], viewProjectionMatrix, viewportMatrix, 0xFF0000FF);
+		DrawSegment(sphere[0].center, sphere[1].center, viewProjectionMatrix, viewportMatrix);
+		DrawSphere(sphere[1], viewProjectionMatrix, viewportMatrix, 0x00FF00FF);
+		DrawSegment(sphere[1].center, sphere[2].center, viewProjectionMatrix, viewportMatrix);
+		DrawSphere(sphere[2], viewProjectionMatrix, viewportMatrix, 0x0000FFFF);
 		///
 		/// ↑描画処理ここまで
 		///

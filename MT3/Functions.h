@@ -14,13 +14,9 @@ Matrix4x4 MakeRotateYMatrix(float radian);
 Matrix4x4 MakeRotateZMatrix(float radian);
 Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Vector3& translate);
 
-Vector3 Bezier(const Vector3& p0, const Vector3& p1, const Vector3& p2, float t);
-Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t);
-
 Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix);
 void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix);
 void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color);
-void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, const Vector3& controlPoint2,
-	const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color,
-	const uint32_t& maxDevideTime);
+void DrawSegment(const Vector3& startPos, const Vector3& endPos, const Matrix4x4& viewProjectionMatrix,
+	const Matrix4x4& viewportMatrix);
 float Cot(float a);

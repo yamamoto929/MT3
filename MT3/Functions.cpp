@@ -104,18 +104,6 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 	return result;
 }
 
-
-Vector3 Bezier(const Vector3& p0, const Vector3& p1, const Vector3& p2, float t) {
-	Vector3 p0p1 = Lerp(p0, p1, t);
-	Vector3 p1p2 = Lerp(p1, p2, t);
-	Vector3 p = Lerp(p0p1, p1p2, t);
-	return p;
-}
-
-Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t) {
-	return  t * v1 + (1.0f - t) * v2;
-}
-
 Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
 	Vector3 result{};
 	result.x = vector.x * matrix.m[0][0] + vector.y * matrix.m[1][0] + vector.z * matrix.m[2][0] + 1.0f * matrix.m[3][0];
@@ -230,26 +218,11 @@ void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, con
 	}
 }
 
-void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, const Vector3& controlPoint2,
-	const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color,
-	const uint32_t& maxDevideTime) {
-
-	for (unsigned int  index = 0; index < maxDevideTime; index++) {
-		float t0 = index / float(maxDevideTime);
-		float t1 = (index + 1) / float(maxDevideTime);
-
-		Vector3 bezier0 = Bezier(controlPoint0, controlPoint1, controlPoint2, t0);
-		Vector3 bezier1 = Bezier(controlPoint0, controlPoint1, controlPoint2, t1);
-
-		Vector3 startScreen = Transform(Transform(bezier0, viewProjectionMatrix), viewportMatrix);
-		Vector3 endScreen = Transform(Transform(bezier1, viewProjectionMatrix), viewportMatrix);
-
-		Novice::DrawLine(
-			int(startScreen.x), int(startScreen.y),
-			int(endScreen.x), int(endScreen.y),
-			color
-		);
-	}
+void DrawSegment(const Vector3& startPos, const Vector3& endPos, const Matrix4x4& viewProjectionMatrix,
+	const Matrix4x4& viewportMatrix) {
+	Vector3 start = Transform(Transform(startPos, viewProjectionMatrix), viewportMatrix);
+	Vector3 end = Transform(Transform( endPos, viewProjectionMatrix), viewportMatrix);
+	Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), 0xFFFFFFFF);
 }
 
 float Cot(float a) {

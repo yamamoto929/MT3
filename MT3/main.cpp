@@ -1,7 +1,13 @@
 ﻿#include <Novice.h>
+#include <cmath>
+#include <imgui.h>
+#include "Vector3.h"
+#include "Matrix4x4.h"
 
-const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_";
-
+const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_03_02";
+Matrix4x4 MakeRotateXMatrix(float radian);
+Matrix4x4 MakeRotateYMatrix(float radian);
+Matrix4x4 MakeRotateZMatrix(float radian);
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
@@ -11,6 +17,17 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// キー入力結果を受け取る箱
 	char keys[256] = {0};
 	char preKeys[256] = {0};
+	Vector3 a{ 0.2f, 1.0f, 0.0f };
+	Vector3 b{ 2.4f, 3.1f, 1.2f };
+	Vector3 c = a + b;
+	Vector3 d = a - b;
+	Vector3 e = a * 2.4f;
+	Vector3 rotate{ 0.4f, 1.43f, -0.8f };
+	Matrix4x4 rotateXMatrix = MakeRotateXMatrix(rotate.x);
+	Matrix4x4 rotateYMatrix =MakeRotateYMatrix(rotate.y);
+	Matrix4x4 rotateZMatrix = MakeRotateZMatrix(rotate.z);
+	Matrix4x4 rotateMatrix = rotateXMatrix*rotateYMatrix
+		* rotateZMatrix;
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -24,7 +41,24 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 		/// ↓更新処理ここから
 		///
-
+	
+		ImGui::Begin("Window");
+		ImGui::Text("c:%f, %f, %f", c.x, c.y, c.z);
+		ImGui::Text("d:%f, %f, %f", d.x, d.y, d.z);
+		ImGui::Text("e:%f, %f, %f", e.x, e.y, e.z);
+		ImGui::Text(
+			"matrix:\n%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f\n%f, %f, %f, %f\n",
+			rotateMatrix.m[0][0], rotateMatrix.m[0][1],
+			rotateMatrix.m[0][2],
+			rotateMatrix.m[0][3], rotateMatrix.m[1][0], rotateMatrix.m[1][1],
+			rotateMatrix.m[1][2], rotateMatrix.m[1][3],
+			rotateMatrix.m[2][0],
+			rotateMatrix.m[2][1], rotateMatrix.m[2][2],
+			rotateMatrix.m[2][3],
+			rotateMatrix.m[3][0], rotateMatrix.m[3][1],
+			rotateMatrix.m[3][2],
+			rotateMatrix.m[3][3]);
+		ImGui::End();
 		///
 		/// ↑更新処理ここまで
 		///
@@ -50,3 +84,34 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Novice::Finalize();
 	return 0;
 }
+
+Matrix4x4 MakeRotateXMatrix(float radian) {
+	Matrix4x4 result = { {
+		{1.0f, 0.0f,               0.0f,              0.0f},
+		{0.0f, std::cos(radian),  std::sin(radian), 0.0f},
+		{0.0f, -std::sin(radian), std::cos(radian), 0.0f},
+		{0.0f, 0.0f,               0.0f,              1.0f}
+	} };
+	return result;
+}
+
+Matrix4x4 MakeRotateYMatrix(float radian) {
+	Matrix4x4 result = { {
+		{std::cos(radian), 0.0f, -std::sin(radian), 0.0f},
+		{0.0f,              1.0f, 0.0f,               0.0f},
+		{std::sin(radian), 0.0f, std::cos(radian),  0.0f},
+		{0.0f,              0.0f, 0.0f,               1.0f}
+	} };
+	return result;
+}
+
+Matrix4x4 MakeRotateZMatrix(float radian) {
+	Matrix4x4 result = { {
+		{std::cos(radian),  std::sin(radian), 0.0f, 0.0f},
+		{-std::sin(radian), std::cos(radian), 0.0f, 0.0f},
+		{0.0f,               0.0f,              1.0f, 0.0f},
+		{0.0f,               0.0f,              0.0f, 1.0f}
+	} };
+	return result;
+}
+

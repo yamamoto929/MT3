@@ -3,8 +3,6 @@
 #include <imgui.h>
 #include "Vector3.h"
 #include "Matrix4x4.h"
-#include "Spring.h"
-#include "Ball.h"
 #include "Draw.h"
 const int kWindowWidth = 1280;
 const int kWindowHeight = 720;
@@ -21,25 +19,22 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	float deltaTime = 1.0f / 60.0f;
 
-	Spring spring{};
-	spring.anchor = { 0.0f, 0.0f, 0.0f };
-	spring.naturalLength = 1.0f;
-	spring.stiffness = 100.0f;
-	spring.dampingCoefficient = 2.0f;
-	Ball ball{};
-	ball.position = { 1.2f, 0.0f, 0.0f };
-	ball.mass = 2.0f;
-	ball.radius = 0.05f;
-	ball.color = BLUE;
-
 	bool isActive = false;
 
 	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
 
+	float rotateRadius = 1.0f;
+
 	Sphere sphere;
 	sphere.radius = 0.05f;
-	sphere.center = {};
+	sphere.center = { rotateRadius };
+
+	Vector3 centerPos = {};
+
+	float angularVelocity = 3.14f;
+	float angle = 0.0f;
+
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -60,25 +55,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		}
 		ImGui::End();
 
-		if (isActive) {
-			Vector3 diff = ball.position - spring.anchor;
-			float length = Length(diff);
-			if (length != 0.0f) {
-				Vector3 direction = Normalize(diff);
-				Vector3 restPosition = spring.anchor + direction * spring.naturalLength;
-				Vector3 displacement = length * (ball.position - restPosition);
-				Vector3 restoringForce = -spring.stiffness * displacement;
-				Vector3 dampingForce = -spring.dampingCoefficient * ball.velocity;
-				Vector3 force = restoringForce + dampingForce;
-				ball.acceleration = force / ball.mass;
-			}
-			// 加速度も速度もどちらも秒を基準とした値である
-			// それが、1/60秒間(deltaTime)適用されたと考える
-			ball.velocity += ball.acceleration * deltaTime;
-			ball.position += ball.velocity * deltaTime;
-		}
+		if(isActive){
+			angle += angularVelocity * deltaTime;
 
-		sphere.center = ball.position;
+			sphere.center.x = centerPos.x + std::cos(angle) * rotateRadius;
+			sphere.center.y = centerPos.y + std::sin(angle) * rotateRadius;
+			sphere.center.z = centerPos.z;
+		}
 
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
 		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
@@ -93,8 +76,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
-		DrawSegment(spring.anchor, ball.position, viewProjectionMatrix, viewportMatrix);
-		DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, ball.color);
+		DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
 		///
 		/// ↑描画処理ここまで
 		///

@@ -6,7 +6,7 @@
 #include "Draw.h"
 const int kWindowWidth = 1280;
 const int kWindowHeight = 720;
-const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_04_00_EX";
+const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_04_01";
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 

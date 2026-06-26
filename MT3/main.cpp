@@ -4,9 +4,10 @@
 #include "Vector3.h"
 #include "Matrix4x4.h"
 #include "Draw.h"
+#include "Pendulum.h"
 const int kWindowWidth = 1280;
 const int kWindowHeight = 720;
-const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_04_01";
+const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_04_02";
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
@@ -24,17 +25,18 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
 
-	float rotateRadius = 0.8f;
+	Pendulum pendulum;
+	pendulum.anchor = { 0.0f,1.0f,0.0f };
+	pendulum.length = 0.8f;
+	pendulum.angle = 0.7f;
+	pendulum.angularVelocity = 0.0f;
+	pendulum.angularAcceleration = 0.0f;
 
 	Sphere sphere;
 	sphere.radius = 0.05f;
-	sphere.center = { rotateRadius };
+	sphere.center = {};
 
 	Vector3 centerPos = {};
-
-	float angularVelocity = 3.14f;
-	float angle = 0.0f;
-
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -56,11 +58,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		ImGui::End();
 
 		if(isActive){
-			angle += angularVelocity * deltaTime;
+			pendulum.angularAcceleration =
+				-(9.8f / pendulum.length) * std::sin(pendulum.angle);
+			pendulum.angularVelocity += pendulum.angularAcceleration * deltaTime;
+			pendulum.angle += pendulum.angularVelocity * deltaTime;
 
-			sphere.center.x = centerPos.x + std::cos(angle) * rotateRadius;
-			sphere.center.y = centerPos.y + std::sin(angle) * rotateRadius;
-			sphere.center.z = centerPos.z;
+			sphere.center.x = pendulum.anchor.x + std::sin(pendulum.angle) * pendulum.length;
+			sphere.center.y = pendulum.anchor.y - std::cos(pendulum.angle) * pendulum.length;
+			sphere.center.z = pendulum.anchor.z;
 		}
 
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
@@ -76,6 +81,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
+		DrawSegment(pendulum.anchor, sphere.center, viewProjectionMatrix, viewportMatrix);
 		DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
 		///
 		/// ↑描画処理ここまで

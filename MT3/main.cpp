@@ -8,7 +8,7 @@
 
 const int kWindowWidth = 1280;
 const int kWindowHeight = 720;
-const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_04_02";
+const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_04_03";
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
@@ -55,16 +55,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 
 		ImGui::Begin("Window");
-		if (ImGui::Button("Start")) {
-			isActive = true;
-		}
-
-		if (ImGui::Button("Reset")) {
-			conicalPendulum = initConicalPendulum;
-		}
-
-		ImGui::SliderFloat("Length", &conicalPendulum.length, 0.1f, 2.0f);
-		ImGui::SliderFloat("HalfApexAngle", &conicalPendulum.halfApexAngle, 0.1f, 1.5f);
+		
 		ImGui::End();
 
 		if(isActive){

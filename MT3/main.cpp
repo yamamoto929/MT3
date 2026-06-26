@@ -4,7 +4,8 @@
 #include "Vector3.h"
 #include "Matrix4x4.h"
 #include "Draw.h"
-#include "Pendulum.h"
+#include "ConicalPedulum.h"
+
 const int kWindowWidth = 1280;
 const int kWindowHeight = 720;
 const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_04_02";
@@ -25,12 +26,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
 
-	Pendulum pendulum;
-	pendulum.anchor = { 0.0f,1.0f,0.0f };
-	pendulum.length = 0.8f;
-	pendulum.angle = 0.7f;
-	pendulum.angularVelocity = 0.0f;
-	pendulum.angularAcceleration = 0.0f;
+	ConicalPendulum initConicalPendulum;
+	initConicalPendulum.anchor = { 0.0f, 1.0f, 0.0f };
+	initConicalPendulum.length = 0.8f;
+	initConicalPendulum.halfApexAngle = 0.7f;
+	initConicalPendulum.angle = 0.0f;
+	initConicalPendulum.angularVelocity = 0.0f;
+
+	ConicalPendulum conicalPendulum = initConicalPendulum;
 
 	Sphere sphere;
 	sphere.radius = 0.05f;
@@ -55,17 +58,23 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		if (ImGui::Button("Start")) {
 			isActive = true;
 		}
+
+		if (ImGui::Button("Reset")) {
+			conicalPendulum = initConicalPendulum;
+		}
+
+		ImGui::SliderFloat("Length", &conicalPendulum.length, 0.1f, 2.0f);
+		ImGui::SliderFloat("HalfApexAngle", &conicalPendulum.halfApexAngle, 0.1f, 1.5f);
 		ImGui::End();
 
 		if(isActive){
-			pendulum.angularAcceleration =
-				-(9.8f / pendulum.length) * std::sin(pendulum.angle);
-			pendulum.angularVelocity += pendulum.angularAcceleration * deltaTime;
-			pendulum.angle += pendulum.angularVelocity * deltaTime;
-
-			sphere.center.x = pendulum.anchor.x + std::sin(pendulum.angle) * pendulum.length;
-			sphere.center.y = pendulum.anchor.y - std::cos(pendulum.angle) * pendulum.length;
-			sphere.center.z = pendulum.anchor.z;
+			conicalPendulum.angularVelocity = std::sqrt(9.8f / (conicalPendulum.length * std::cos(conicalPendulum.halfApexAngle)));
+			conicalPendulum.angle += conicalPendulum.angularVelocity * deltaTime;
+			float radius = std::sin(conicalPendulum.halfApexAngle) * conicalPendulum.length;
+			float height = std::cos(conicalPendulum.halfApexAngle) * conicalPendulum.length;
+			sphere.center.x = conicalPendulum.anchor.x + std::cos(conicalPendulum.angle) * radius;
+			sphere.center.y = conicalPendulum.anchor.y - height;
+			sphere.center.z = conicalPendulum.anchor.z - std::sin(conicalPendulum.angle) * radius;
 		}
 
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
@@ -81,7 +90,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
-		DrawSegment(pendulum.anchor, sphere.center, viewProjectionMatrix, viewportMatrix);
+		DrawSegment(conicalPendulum.anchor, sphere.center, viewProjectionMatrix, viewportMatrix);
 		DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
 		///
 		/// ↑描画処理ここまで

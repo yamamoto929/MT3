@@ -203,6 +203,7 @@ xcopy C:\KamataEngine\DirectXGame\Resources "$(OutDirFullPath)NoviceResources" /
     <ClInclude Include="C:\KamataEngine\DirectXGame\input\Input.h" />
     <ClInclude Include="C:\KamataEngine\DirectXGame\scene\GameScene.h" />
     <ClInclude Include="C:\KamataEngine\Adapter\Novice.h" />
+    <ClInclude Include="ConicalPedulum.h" />
     <ClInclude Include="Draw.h" />
     <ClInclude Include="Matrix4x4.h" />
     <ClInclude Include="Pendulum.h" />

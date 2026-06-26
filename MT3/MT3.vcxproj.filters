@@ -119,5 +119,6 @@
     <ClInclude Include="Spring.h" />
     <ClInclude Include="Vector3.h" />
     <ClInclude Include="Pendulum.h" />
+    <ClInclude Include="ConicalPedulum.h" />
   </ItemGroup>
 </Project>

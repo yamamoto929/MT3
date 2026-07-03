@@ -3,6 +3,7 @@
 #include "Sphere.h"
 #include "Vector3.h"
 #include "Matrix4x4.h"
+#include "Plane.h"
 // 透視投影行列
 Matrix4x4 MakePerspectiveFovMatrix(float fovy, float aspectRatio, float nearClip, float farClip);
 // 正射影行列
@@ -19,4 +20,7 @@ void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMa
 void DrawSphere(const Sphere& sphere, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color);
 void DrawSegment(const Vector3& startPos, const Vector3& endPos, const Matrix4x4& viewProjectionMatrix,
 	const Matrix4x4& viewportMatrix);
+void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color);
+
 float Cot(float a);
+Vector3 Perpendicular(const Vector3& vector);

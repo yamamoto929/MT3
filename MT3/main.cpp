@@ -4,11 +4,16 @@
 #include "Vector3.h"
 #include "Matrix4x4.h"
 #include "Draw.h"
-#include "ConicalPedulum.h"
+#include "Collision.h"
+#include "Plane.h"
+#include "Ball.h"
+#include "Reflect.h"
+#include "Projection.h"
+#include "Camera.h"
 
 const int kWindowWidth = 1280;
 const int kWindowHeight = 720;
-const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_04_03";
+const char kWindowTitle[] = "LE2B_30_ヤマモト_ルナ_MT3_04_04";
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
@@ -21,25 +26,24 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 	float deltaTime = 1.0f / 60.0f;
 
-	bool isActive = false;
-
 	Vector3 cameraTranslate{ 0.0f, 1.9f, -6.49f };
 	Vector3 cameraRotate{ 0.26f, 0.0f, 0.0f };
-
-	ConicalPendulum initConicalPendulum;
-	initConicalPendulum.anchor = { 0.0f, 1.0f, 0.0f };
-	initConicalPendulum.length = 0.8f;
-	initConicalPendulum.halfApexAngle = 0.7f;
-	initConicalPendulum.angle = 0.0f;
-	initConicalPendulum.angularVelocity = 0.0f;
-
-	ConicalPendulum conicalPendulum = initConicalPendulum;
 
 	Sphere sphere;
 	sphere.radius = 0.05f;
 	sphere.center = {};
 
+	Plane plane;
+	plane.normal = Normalize({ -0.2f, 0.9f, -0.3f });
+	plane.distance = 0.0f;
+
+	Ball ball{};
+	ball.position = { 0.7f, 1.5f, 0.2f };
+	ball.mass = 2.0f;
+	ball.radius = 0.05f;
+	ball.color = WHITE;
 	Vector3 centerPos = {};
+	Vector3 setBallPos = { 0.7f, 1.5f, 0.2f };
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -53,30 +57,27 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		///
 		/// ↓更新処理ここから
 		///
-
-		ImGui::Begin("Window");
-		if (ImGui::Button("Start")) {
-			isActive = true;
+		ImGui::Begin("Debug");
+		ImGui::DragFloat3("initBallPos", &setBallPos.x, 0.01f);
+		if (ImGui::Button("Reset Ball")) {
+			ball.velocity = {};
+			ball.acceleration = {};
+			ball.position = setBallPos;
+		}
+		MoveCamera(keys, cameraRotate, cameraTranslate);
+		
+		float e = 1.0f;
+		ball.acceleration = { 0.0f,-9.8f,0.0f };
+		ball.velocity += ball.acceleration * deltaTime;
+		ball.position += ball.velocity * deltaTime;
+		if (IsCollision(Sphere{ ball.radius,ball.position }, plane,ball.velocity*deltaTime)) {
+			Vector3 reflected = Reflect(ball.velocity, plane.normal);
+			Vector3 projectToNormal = Project(reflected, plane.normal);
+			Vector3 movingDirection = reflected - projectToNormal;
+			ball.velocity = projectToNormal * e + movingDirection;
 		}
 
-		if (ImGui::Button("Reset")) {
-			conicalPendulum = initConicalPendulum;
-		}
-
-		ImGui::SliderFloat("Length", &conicalPendulum.length, 0.1f, 2.0f);
-		ImGui::SliderFloat("HalfApexAngle", &conicalPendulum.halfApexAngle, 0.1f, 1.5f);
-		ImGui::End();
-
-		if(isActive){
-			conicalPendulum.angularVelocity = std::sqrt(9.8f / (conicalPendulum.length * std::cos(conicalPendulum.halfApexAngle)));
-			conicalPendulum.angle += conicalPendulum.angularVelocity * deltaTime;
-			float radius = std::sin(conicalPendulum.halfApexAngle) * conicalPendulum.length;
-			float height = std::cos(conicalPendulum.halfApexAngle) * conicalPendulum.length;
-			sphere.center.x = conicalPendulum.anchor.x + std::cos(conicalPendulum.angle) * radius;
-			sphere.center.y = conicalPendulum.anchor.y - height;
-			sphere.center.z = conicalPendulum.anchor.z - std::sin(conicalPendulum.angle) * radius;
-		}
-
+		sphere.center = ball.position;
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(Vector3{ 1.0f,1.0f,1.0f }, cameraRotate, cameraTranslate);
 		Matrix4x4 viewMatrix = Inverse(cameraMatrix);
 		Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(kWindowWidth) / float(kWindowHeight), 0.1f, 100.0f);
@@ -90,8 +91,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
-		DrawSegment(conicalPendulum.anchor, sphere.center, viewProjectionMatrix, viewportMatrix);
-		DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
+		DrawPlane(plane, viewProjectionMatrix, viewportMatrix,0xFFFFFFFF);
+		DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, ball.color);
 		///
 		/// ↑描画処理ここまで
 		///

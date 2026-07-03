@@ -17,6 +17,7 @@ Vector3 Cross(const Vector3& v1, const Vector3& v2);
 Vector3 Add(const Vector3& v1, const Vector3& v2);
 Vector3 Subtract(const Vector3& v1, const Vector3& v2);
 Vector3 Multiply(const float& s, const Vector3& v);
+Vector3 Hadamard(const Vector3& v1, const Vector3& v2);
 
 
 //=============================================

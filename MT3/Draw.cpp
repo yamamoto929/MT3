@@ -1,4 +1,5 @@
 ﻿#include "Draw.h"
+#include "Perpendicular.h"
 #include <Novice.h>
 #include <cassert>
 #include <cmath>
@@ -240,10 +241,6 @@ void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const 
 		points[index] = Transform(Transform(point, viewProjectionMatrix), viewportMatrix);
 	}
 
-	Sphere s;
-	s.center = points[0];
-
-
 	Novice::DrawLine(int(points[1].x), int(points[1].y), int(points[2].x), int(points[2].y), color);
 	Novice::DrawLine(int(points[1].x), int(points[1].y), int(points[3].x), int(points[3].y), color);
 	Novice::DrawLine(int(points[3].x), int(points[3].y), int(points[0].x), int(points[0].y), color);
@@ -253,11 +250,4 @@ void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const 
 
 float Cot(float a) {
 	return 1.0f / std::tan(a);
-}
-
-Vector3 Perpendicular(const Vector3& vector) {
-	if (vector.x != 0.0f || vector.y != 0.0f) {
-		return Vector3{ -vector.y,vector.x,0.0f };
-	}
-	return Vector3{ 0.0f,-vector.z,vector.y };
 }

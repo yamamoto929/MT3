@@ -139,5 +139,6 @@
     <ClInclude Include="Capsule.h" />
     <ClInclude Include="Line.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="Perpendicular.h" />
   </ItemGroup>
 </Project>

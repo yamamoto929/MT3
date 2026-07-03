@@ -1,5 +1,6 @@
 ﻿#include "Collision.h"
 #include "Capsule.h"
+#include "Perpendicular.h"
 #include <algorithm>
 #include <cmath>
 bool IsCollision(const Sphere& sphere, const Plane& plane,const Vector3& velocity) {
@@ -7,11 +8,12 @@ bool IsCollision(const Sphere& sphere, const Plane& plane,const Vector3& velocit
 	capsule.radius = sphere.radius;
 	capsule.segment.diff = velocity;
 	capsule.segment.origin = sphere.center;
+
 	float dotA = Dot(capsule.segment.origin , plane.normal);
 
 	float dotB = Dot(capsule.segment.origin + capsule.segment.diff, plane.normal);
 
-	if ((dotA - plane.distance) * (dotB - plane.distance) < 0) {
+	if ((dotA - plane.distance) * (dotB - plane.distance) < 0.0f) {
 		return true;
 	}
 

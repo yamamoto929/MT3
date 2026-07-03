@@ -1,6 +1,5 @@
 ﻿#include "Collision.h"
 #include "Capsule.h"
-#include "Perpendicular.h"
 #include <algorithm>
 #include <cmath>
 bool IsCollision(const Sphere& sphere, const Plane& plane,const Vector3& velocity) {

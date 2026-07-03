@@ -23,3 +23,4 @@ void DrawSegment(const Vector3& startPos, const Vector3& endPos, const Matrix4x4
 void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color);
 
 float Cot(float a);
+Vector3 Perpendicular(const Vector3& vector);

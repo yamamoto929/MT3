@@ -1,5 +1,4 @@
 ﻿#include "Draw.h"
-#include "Perpendicular.h"
 #include <Novice.h>
 #include <cassert>
 #include <cmath>
@@ -250,4 +249,11 @@ void DrawPlane(const Plane& plane, const Matrix4x4& viewProjectionMatrix, const 
 
 float Cot(float a) {
 	return 1.0f / std::tan(a);
+}
+
+Vector3 Perpendicular(const Vector3& vector) {
+	if (vector.x != 0.0f || vector.y != 0.0f) {
+		return Vector3{ -vector.y,vector.x,0.0f };
+	}
+	return Vector3{ 0.0f,-vector.z,vector.y };
 }

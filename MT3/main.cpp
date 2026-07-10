@@ -58,6 +58,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓更新処理ここから
 		///
 		ImGui::Begin("Debug");
+
 		ImGui::DragFloat3("initBallPos", &setBallPos.x, 0.01f);
 		if (ImGui::Button("Reset Ball")) {
 			ball.velocity = {};
@@ -65,16 +66,23 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			ball.position = setBallPos;
 		}
 		MoveCamera(keys, cameraRotate, cameraTranslate);
-		
+
 		float e = 1.0f;
 		ball.acceleration = { 0.0f,-9.8f,0.0f };
 		ball.velocity += ball.acceleration * deltaTime;
 		ball.position += ball.velocity * deltaTime;
-		if (IsCollision(Sphere{ ball.radius,ball.position }, plane,ball.velocity*deltaTime)) {
+
+		if (IsCollision(Sphere{ ball.radius,ball.position }, plane, ball.velocity * deltaTime)) {
 			Vector3 reflected = Reflect(ball.velocity, plane.normal);
 			Vector3 projectToNormal = Project(reflected, plane.normal);
 			Vector3 movingDirection = reflected - projectToNormal;
 			ball.velocity = projectToNormal * e + movingDirection;
+			float distance = Dot(ball.position, plane.normal) - plane.distance;
+			
+			if (distance < ball.radius) {
+				float penetration = ball.radius - distance;
+				ball.position += plane.normal * penetration;
+			}
 		}
 
 		sphere.center = ball.position;
@@ -91,8 +99,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		/// ↓描画処理ここから
 		///
 		DrawGrid(viewProjectionMatrix, viewportMatrix);
-		DrawPlane(plane, viewProjectionMatrix, viewportMatrix,0xFFFFFFFF);
-		DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, ball.color);
+		DrawPlane(plane, viewProjectionMatrix, viewportMatrix, 0xFFFFFFFF);
+		if (IsCollision(Sphere{ ball.radius,ball.position }, plane, ball.velocity * deltaTime)) {
+			DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, RED);
+		} else {
+			DrawSphere(sphere, viewProjectionMatrix, viewportMatrix, WHITE);
+		}
+
 		///
 		/// ↑描画処理ここまで
 		///
